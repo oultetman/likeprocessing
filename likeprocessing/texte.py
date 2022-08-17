@@ -4,7 +4,9 @@ from pygame.colordict import THECOLORS as COLORS
 from likeprocessing.pyDialog import Label
 
 
-def textFont(police=None, taille=None):
+def textFont(police=None, taille=None)->tuple:
+    """change la police et la taille texte
+    retourne la police et la taille du texte courante si aucun paramètre est passé"""
     if police is not None:
         processing.set_font(police)
     if taille is not None:
@@ -13,18 +15,23 @@ def textFont(police=None, taille=None):
 
 
 def textSize(taille: int = None):
+    """change la taille texte
+    retourne la taille du texte courante si aucun paramètre est passé"""
     if taille is not None:
         processing.set_font_size(taille)
     return processing.get_font_size()
 
 
 def textCouleurCadre(couleur=None):
+    """change la couleur du cadre du texte
+    retourne la couleur du cadre du texte courante si aucun paramètre est passé"""
     if couleur is not None:
         processing.set_couleur_cadre_texte(couleur)
     return processing.get_couleur_bord_cadre_texte()
 
 
 def text(texte: str, x, y, largeur=0, hauteur=0):
+    """Ecrit le texte à la position x,y en fonction du style et de alignement courant"""
     police, size = textFont()
     if textStyle() == "BOLD":
         b = True
@@ -52,12 +59,19 @@ def textWidth(chaine: str) -> int:
 
 
 def textStyle(style: str = None) -> str:
+    """change le style du texte
+    NORMAL BOLD ITALIC BOLDITALIC
+    retourne le style courant si aucun paramètre est passé"""
     if style is not None:
         processing.set_text_style(style.upper())
     return processing.get_text_style()
 
 
 def textAlign(horizontal: str = None, vertical: str = None) -> tuple:
+    """change l'alignment du texte
+    horizontal : LEFT CENTER RIGHT
+    veritcal : TOP CENTER BOTTOM
+    retourne l'alignement courant si aucun paramètre est passé"""
     if horizontal is not None:
         processing.set_text_align_h(horizontal)
     if vertical is not None:
