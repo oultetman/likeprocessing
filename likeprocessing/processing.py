@@ -112,52 +112,64 @@ def size(largeur: int, hauteur: int):
 
 
 def createCanvas(largeur: int, hauteur: int):
+    """creer une fenêtre de taille largeur*hauteur"""
     size(largeur, hauteur)
 
 
 def title(titre: str):
+    """change le titre de la fenêtre"""
     global __title
     __title = titre
     pygame.display.set_caption(__title)
 
 
 def save_background():
+    """fait une copie du contenu de la fenetre"""
     global __background_image
     __background_image = screen.copy()
 
 
 def draw_background():
+    """dessine le background de la fenêtre"""
     if type(__background_image) is pygame.Surface:
         screen.blit(__background_image, (0, 0))
     else:
         screen.fill(__background_color)
 
 
-def keys():
+def keys()->list[bool]:
+    """l'etat des touches du clavier"""
     return pygame.key.get_pressed()
 
 
-def keyIsPressed():
+def keyIsPressed()->bool:
+    """retourne True si une touche du clavier est pressée """
     return __key_pressed
 
 
 def isKeyPressed():
+    """retourne True si une touche du clavier est pressée """
     return __key_pressed
 
 
 def frameCount():
+    """retourne le nombre de boucle effectuée depuis le lancement du programme"""
     return __frameCount
 
 
 def keyIsDown(code) -> bool:
+    """retourne True si une touche(code) est pressée """
     return processing.keys()[code] == 1
 
 
 def mouseIsPressed():
+    """retourne True si une touche de la souris est appuyée"""
     return click is True
 
 
 def mouse_button_pressed():
+    """retourne le numero de la touche de la souris qui est appuyée 0,1 ou 2
+    -1 si aucune touche est enfoncée"""
     boutons = pygame.mouse.get_pressed()
     for i in range(3):
         if boutons[i]:
@@ -166,6 +178,7 @@ def mouse_button_pressed():
 
 
 def redraw():
+    """force le redessin de l'écran"""
     pygame.display.update()
 
 
@@ -223,42 +236,52 @@ def run(globales):
 
 
 def set_font_size(taille):
+    """initialise la taille courante du texte"""
     global __font_size
     __font_size = taille
 
 
 def get_font_size():
+    """retourne la taille courante du texte"""
     return __font_size
 
 
 def get_couleur_bord_cadre_texte():
+    """retourne la couleur courante du cadre du texte"""
     return __couleur_bord_cadre_texte
 
 
 def set_couleur_cadre_texte(couleur):
+    """initialise la couleur courante du cadre du texte"""
     global __couleur_bord_cadre_texte
     __couleur_bord_cadre_texte = couleur
 
 
 def set_text_style(style):
+    """initialise le style courant du texte"""
     processing.__text_style = style
 
 
 def get_text_style():
+    """retourne le style courant du texte"""
     return processing.__text_style
 
 
 def set_text_align_h(horizontal: str):
+    """initialise l'alignement horizontal courant du texte"""
     processing.__text_align_h = horizontal
 
 
 def get_text_align_h() -> str:
+    """retourne l'alignement horizontal courant du texte"""
     return processing.__text_align_h
 
 
 def set_text_align_v(vertical: str):
+    """initialise l'alignement vertical courant du texte"""
     processing.__text_align_v = vertical
 
 
 def get_text_align_v() -> str:
+    """retoune l'alignement vertical courant du texte"""
     return processing.__text_align_v
