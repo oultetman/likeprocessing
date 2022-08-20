@@ -8,7 +8,7 @@ def setup():
     print(textWidth("bonjour les amis"))
     textAlign("left","bottom")
 def draw():
-    rect(10,10,20,20)
-    text("bonjour les amis",10,50,180,50)
+    rect(10,10,10,10 ,image=loadImage("fantome_jaune.png"))
+
 
 run(globals())

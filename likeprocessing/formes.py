@@ -13,6 +13,14 @@ def rectMode(corners_center: str):
 
 
 def rect(x: int, y: int, largeur: int, hauteur: int, **kwarsg):
+    """crée un rectangle aux coordonneés x,y de largeur largeur et de hauteur
+     hauteur si rectMode('center') x et y sont les coordonnées du centre du rectangle
+     si rectMode('corners') x,y sont les coordonnées du coin haut gauche
+     le rectangle est rempli pas la couleur definie par fill(couleur)
+     si le paramètre image est renseigné le fond sur rectangle sera occupé pas l'image retaillée
+     aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles largeur et/ou hauteur
+     seront celle de l'image"""
+
     if processing.__rect_center_mode:
         x -= largeur / 2
         y -= hauteur / 2
@@ -23,6 +31,10 @@ def rect(x: int, y: int, largeur: int, hauteur: int, **kwarsg):
             pygame.draw.rect(processing.screen, processing.__fill_color,
                              (x + processing.__dx, y + processing.__dy, largeur, hauteur), 0)
     else:
+        if hauteur == 0:
+            hauteur = image.get_height()
+        if largeur == 0:
+            largeur = image.get_width()
         if allign == "left":
             processing.screen.blit(image, (x, y + (hauteur - image.get_height()) // 2), (0, 0, largeur, hauteur))
         elif allign == "right":
@@ -91,8 +103,10 @@ def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int):
         line(x2 + processing.__dx, y2 + processing.__dy, x3 + processing.__dx, y3 + processing.__dy)
         line(x3 + processing.__dx, y3 + processing.__dy, x1 + processing.__dx, y1 + processing.__dy)
     else:
-        pygame.draw.polygon(processing.screen,processing.__fill_color,[(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
-       , (x3 + processing.__dx, y3 + processing.__dy)])
+        pygame.draw.polygon(processing.screen, processing.__fill_color,
+                            [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
+                                , (x3 + processing.__dx, y3 + processing.__dy)])
+
 
 def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int):
     if processing.__no_fill is True:
@@ -101,8 +115,11 @@ def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int)
         line(x3 + processing.__dx, y3 + processing.__dy, x4 + processing.__dx, y4 + processing.__dy)
         line(x1 + processing.__dx, y1 + processing.__dy, x4 + processing.__dx, y4 + processing.__dy)
     else:
-        pygame.draw.polygon(processing.screen,processing.__fill_color,[(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
-       , (x3 + processing.__dx, y3 + processing.__dy), (x4 + processing.__dx, y4 + processing.__dy)])
+        pygame.draw.polygon(processing.screen, processing.__fill_color,
+                            [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
+                                , (x3 + processing.__dx, y3 + processing.__dy),
+                             (x4 + processing.__dx, y4 + processing.__dy)])
+
 
 def dist(x1, y1, x2, y2):
     """retourne la distance entre deux points"""
