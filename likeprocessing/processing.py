@@ -18,7 +18,7 @@ __angle_mode = 1
 __width, __height = 300, 200
 __background_color = (0, 0, 0)
 __background_image = None
-__border_width = 1
+__border_width = 2
 __fill_color = (255, 255, 255)
 __border_color = (0, 0, 0)
 __fps = 60
@@ -154,7 +154,9 @@ def isKeyPressed():
 
 def frameCount():
     """retourne le nombre de boucle effectuée depuis le lancement du programme"""
-    return __frameCount
+    return processing.__frameCount
+
+
 
 
 def keyIsDown(code) -> bool:

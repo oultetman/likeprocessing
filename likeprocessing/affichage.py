@@ -92,6 +92,8 @@ def rgb_color(valeur) -> [tuple,None]:
             return int(valeur[1:3], 16), int(valeur[3:5], 16), int(valeur[5:], 16), 255
         elif valeur[0] == '#' and len(valeur) == 9:
             return int(valeur[1:3], 16), int(valeur[3:5], 16), int(valeur[5:7], 16), int(valeur[7:], 16)
+        elif valeur[0:2] == '0x' and len(valeur)==8:
+            return int(valeur[2:4], 16), int(valeur[4:6], 16), int(valeur[6:], 16), 255
         elif COLORS.get(valeur.lower()):
             return COLORS.get(valeur.lower())
     return None
