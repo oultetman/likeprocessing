@@ -20,7 +20,6 @@ def noFill():
     """supprime la couleur de fond d'une figure (rect, square, ellipse ... """
     processing.__border_width = 1
     processing.__no_fill = True
-    print(processing.__no_fill)
 
 
 def stroke(couleur: any):

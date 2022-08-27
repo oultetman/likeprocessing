@@ -137,12 +137,12 @@ def draw_background():
         screen.fill(__background_color)
 
 
-def keys()->list[bool]:
+def keys() -> list[bool]:
     """l'etat des touches du clavier"""
-    return pygame.key.get_pressed()
+    return list(pygame.key.get_pressed())
 
 
-def keyIsPressed()->bool:
+def keyIsPressed() -> bool:
     """retourne True si une touche du clavier est pressée """
     return __key_pressed
 
