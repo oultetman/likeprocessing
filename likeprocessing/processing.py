@@ -18,7 +18,7 @@ __angle_mode = 1
 __width, __height = 300, 200
 __background_color = (0, 0, 0)
 __background_image = None
-__border_width = 2
+__border_width = 1
 __fill_color = (255, 255, 255)
 __border_color = (0, 0, 0)
 __fps = 60
@@ -39,8 +39,11 @@ objets = []
 aliens = None
 screen = pygame.display.set_mode((300, 200))
 Boite.init(screen)
+__rotation = 0
+__axis = None
 from random import randint
 from likeprocessing.affichage import *
+from likeprocessing.trigo import *
 from likeprocessing.formes import *
 from likeprocessing.tempos import Tempo
 from likeprocessing.images import *
@@ -152,16 +155,14 @@ def isKeyPressed():
     return __key_pressed
 
 
-def frameCount():
-    """retourne le nombre de boucle effectuée depuis le lancement du programme"""
-    return processing.__frameCount
-
-
-
-
 def keyIsDown(code) -> bool:
     """retourne True si une touche(code) est pressée """
     return processing.keys()[code] == 1
+
+
+def frameCount():
+    """retourne le nombre de boucle effectuée depuis le lancement du programme"""
+    return processing.__frameCount
 
 
 def mouseIsPressed():
@@ -204,7 +205,7 @@ def run(globales):
         clock.tick(__fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                if globales.get('stop'):
+                if globales.get('quit'):
                     __quitter = True
                 else:
                     quit()
@@ -232,7 +233,7 @@ def run(globales):
                 globales['draw']()
                 reset()
         if __quitter:
-            globales['stop']()
+            globales['quit']()
         pygame.display.update()  # Or pygame.display.flip()
         __frameCount += 1
 

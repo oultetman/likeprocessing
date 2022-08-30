@@ -1,7 +1,9 @@
+import math
+
 import likeprocessing.processing as processing
 import pygame
 from pygame.colordict import THECOLORS as COLORS
-
+from likeprocessing.trigo import angleMode
 import likeprocessing.processing
 
 
@@ -34,6 +36,18 @@ def noStroke():
     processing.__border_width = 0
 
 
+def get_border_width():
+    return processing.__border_width
+
+
+def get_fill_color():
+    return processing.__fill_color
+
+
+def get_border_color():
+    return processing.__border_color
+
+
 def fill(couleur: any):
     """initialise la couleur de fond des figures"""
     c = rgb_color(couleur)
@@ -61,22 +75,27 @@ def setFrameRate(valeur):
     frameRate(valeur)
 
 
-def getFrameRate():
+def getFrameRate() -> float:
     """retourne le nombre de frame par secondes"""
     return frameRate()
 
 
-def noLoop():
+def noLoop() -> None:
     """La fonction draw() ne sera executé qu'une seule fois """
     processing.__no_loop = True
 
 
-def loop():
+def loop() -> None:
     """reprend l'execution de la fonction draw() en boucle"""
     processing.__no_loop = False
 
 
-def rgb_color(valeur) -> [tuple,None]:
+def stop() -> None:
+    """ stop the loop like no_loop()"""
+    noLoop()
+
+
+def rgb_color(valeur) -> [tuple, None]:
     """retourne un tuple de 4 éléments rgb + transparance à partir d"un tuple rgb, d'une chaine de caractères
     désignant la couleur ex black, d'une chaine #12FAE6 ou #12FAE6FF"""
     if isinstance(valeur, tuple):
@@ -91,7 +110,7 @@ def rgb_color(valeur) -> [tuple,None]:
             return int(valeur[1:3], 16), int(valeur[3:5], 16), int(valeur[5:], 16), 255
         elif valeur[0] == '#' and len(valeur) == 9:
             return int(valeur[1:3], 16), int(valeur[3:5], 16), int(valeur[5:7], 16), int(valeur[7:], 16)
-        elif valeur[0:2] == '0x' and len(valeur)==8:
+        elif valeur[0:2] == '0x' and len(valeur) == 8:
             return int(valeur[2:4], 16), int(valeur[4:6], 16), int(valeur[6:], 16), 255
         elif COLORS.get(valeur.lower()):
             return COLORS.get(valeur.lower())
@@ -103,6 +122,38 @@ def translate(x: int, y: int):
     processing.__dy += y
 
 
+def get_axis():
+    return processing.__axis
+
+
+def get_rotation():
+    return processing.__rotation
+
+
+def rotate(angle: float, axis=(0, 0)):
+    processing.__rotation = angle * angleMode()
+    processing.__axis = axis
+
+
 def reset():
     processing.__dx = 0
     processing.__dy = 0
+    processing.__rotation = 0
+    processing.__axis = None
+
+
+def rotation(points: list) -> list:
+    pr = []
+    if get_rotation() == 0:
+        return points
+    else:
+        a = complex(*get_axis())
+        angle = get_rotation()
+        for pt in points:
+            p = complex(*pt)
+            p -= a
+            r = complex(math.cos(angle), -math.sin(angle))
+            p *= r
+            p += a
+            pr.append([p.real, p.imag])
+        return pr

@@ -43,7 +43,7 @@ class Boite(pygame.Rect):
         if self.couleurFond:
             r.fill(self.couleurFond)
             Boite.ecran.blit(r, [self.Parent.left + self.left, self.Parent.top + self.top])
-        if self.couleurBord is not None:
+        if self.largeurBord>0:
             r = pygame.Rect(self.Parent.left + self.left, self.Parent.top + self.top, self.width, self.height)
             pygame.draw.rect(Boite.ecran, self.couleurBord, r, self.largeurBord)
 
@@ -113,8 +113,8 @@ class Label(Boite):
                  angle=0, **kwargs):
         if len(rect) == 2:
             rect = (rect[0], rect[1], 0, 0)
-        couleurBord = kwargs.get('couleurBord', None)
-        largeurBord = kwargs.get('largeurBord', 1)
+        couleurBord = kwargs.get('couleurBord', "black")
+        largeurBord = kwargs.get('largeurBord', 0)
         couleurFond = kwargs.get('couleurFond', None)
         self.bold = kwargs.get('bold', None)
         self.italic = kwargs.get('italic', None)

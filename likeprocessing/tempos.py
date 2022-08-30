@@ -23,3 +23,6 @@ class Tempo:
     def is_on(self):
         self.fin()
         return self.__on
+
+    def is_off(self):
+        return not self.is_on()

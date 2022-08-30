@@ -4,7 +4,7 @@ from pygame.colordict import THECOLORS as COLORS
 from likeprocessing.pyDialog import Label
 
 
-def textFont(police=None, taille=None)->tuple:
+def textFont(police=None, taille=None) -> tuple:
     """change la police et la taille texte
     retourne la police et la taille du texte courante si aucun paramètre est passé"""
     if police is not None:
@@ -45,10 +45,16 @@ def text(texte: str, x, y, largeur=0, hauteur=0):
     else:
         b = False
         i = False
-    h,v = align_h=textAlign()
-    t = Label(None, (x, y, largeur, hauteur), texte, police, size,
-              couleurBord=processing.get_couleur_bord_cadre_texte(), bold=b, italic=i,align_h=h,align_v=v)
+    h, v = align_h = textAlign()
+    t = Label(None, (x, y, largeur, hauteur), texte, police, size, couleurFond=processing.get_fill_color(),
+              couleurBord=processing.get_border_color(), largeurBord=processing.get_border_width(), bold=b, italic=i,
+              align_h=h, align_v=v)
     t.draw()
+
+
+__border_width = 1
+__fill_color = (255, 255, 255)
+__border_color = (0, 0, 0)
 
 
 def textWidth(chaine: str) -> int:

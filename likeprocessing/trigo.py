@@ -3,31 +3,26 @@ import math
 __mode = 1
 
 
-def get_mode()->float:
-    """
-    retourne un entier permettant la conversion d'un angle(degré, grade, et radian)  en radian\n
-    :return: float\n
-    """
-    return __mode
-
-
-def mode(mode_angle: str):
+def angleMode(mode_angle: str = "") -> float:
     """
     :rtype: None\n
     :param mode_angle : type d'unité d'angle à utiliser\n
     :type mode_angle : str\n
-    'rad' les angles des fonctions trigo seront pris comme des radians (défaut)\n
-    'deg' les angles des fonctions trigo seront pris comme des degrés\n
-    'grd' les angles des fonctions trigo seront pris comme des gradians\n
+    'rad' les angles des fonctions trigonométriques seront pris comme des radians (défaut)\n
+    'deg' les angles des fonctions trigonométriques seront pris comme des degrés\n
+    'grd' les angles des fonctions trigonométriques seront pris comme des grades\n
     Une exception est levée en cas d'erreur de paramètre
+
+    si mode_angle == "" la valeur de mode est retourné
      """
     global __mode
-
-    if mode_angle == "deg":
+    if mode_angle == "":
+        return __mode
+    if mode_angle.lower() == "deg":
         __mode = math.pi / 180
-    elif mode_angle == "grd":
+    elif mode_angle.lower() == "grd":
         __mode = math.pi / 200
-    elif mode_angle == "rad":
+    elif mode_angle.lower() == "rad":
         __mode = 1
     else:
         raise ValueError
@@ -39,7 +34,7 @@ def cos(angle: float) -> float:
     :param angle:float
     :return: float
     """
-    return math.cos(angle * get_mode())
+    return math.cos(angle * angleMode())
 
 
 def acos(value: float) -> float:
@@ -49,7 +44,7 @@ def acos(value: float) -> float:
     The result is between 0 and 180° if mode("deg").
     The result is between 0 and 200 grd if mode("grd").
     """
-    return math.acos(value) / get_mode()
+    return math.acos(value) / angleMode()
 
 
 def sin(angle: float) -> float:
@@ -58,7 +53,7 @@ def sin(angle: float) -> float:
     angle must be in degree if mode("deg").
     angle must be in gradian if mode("grd").
     """
-    return math.sin(angle * get_mode())
+    return math.sin(angle * angleMode())
 
 
 def asin(value: float) -> float:
@@ -68,7 +63,7 @@ def asin(value: float) -> float:
     The result is between -90° and 90° if mode("deg").
     The result is between -100 and 100 grd if mode("grd").
     """
-    return math.asin(value) / get_mode()
+    return math.asin(value) / angleMode()
 
 
 def tan(angle: float) -> float:
@@ -77,7 +72,7 @@ def tan(angle: float) -> float:
     angle must be in degree if mode("deg").
     angle must be in gradian if mode("grd").
     """
-    return math.tan(angle * get_mode())
+    return math.tan(angle * angleMode())
 
 
 def atan(value: float) -> float:
@@ -87,7 +82,7 @@ def atan(value: float) -> float:
     The result is between -90° and 90° if mode("deg").
     The result is between -100 and 100 grd if mode("grd").
     """
-    return math.atan(value) / get_mode()
+    return math.atan(value) / angleMode()
 
 
 def atan2(y: float, x: float) -> float:
@@ -98,12 +93,22 @@ def atan2(y: float, x: float) -> float:
     The result is between -200 and 200 grd if mode("grd").
     Unlike atan(y/x), the signs of both x and y are considered.
     """
-    return math.atan2(y, x) / get_mode()
+    return math.atan2(y, x) / angleMode()
 
+def radians(angle:float)->float:
+    return angle * angleMode()
+
+def degrees(angle:float)->float:
+    return angle * angleMode() * 180 / math.pi
+
+def grades(angle:float)->float:
+    return angle * angleMode() * 200 / math.pi
 
 if __name__ == '__main__':
-    mode('deg')
+    angleMode('deg')
     print(cos(180))
     print(asin(sin(180)))
     print(atan(-math.sqrt(3) / 2 / 0.5))
     print(atan2(-math.sqrt(3) / 2, -0.5))
+    print(gradians(180))
+    print(radians(180))
