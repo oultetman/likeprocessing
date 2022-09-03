@@ -137,6 +137,8 @@ def reset():
     processing.__dy = 0
     processing.__rotation = 0
     processing.__axis = None
+    processing.__flip_axe_v = None
+    processing.__flip_axe_h = None
 
 
 

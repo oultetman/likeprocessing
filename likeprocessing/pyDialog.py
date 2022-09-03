@@ -1,7 +1,7 @@
 ﻿import likeprocessing as processing
 import os.path
 import pygame
-
+from pygame.constants import *
 pygame.font.init()
 from likeprocessing.couleur import *
 import os
@@ -522,31 +522,31 @@ class TextInput:
                 if not event.key in self.keyrepeat_counters:
                     self.keyrepeat_counters[event.key] = [0, event.unicode]
 
-                if event.key == pl.K_BACKSPACE:  # FIXME: Delete at beginning of line?
+                if event.key == K_BACKSPACE:
                     self._input_string = self._input_string[:max(self.cursor_position - 1, 0)] + \
                                          self._input_string[self.cursor_position:]
 
                     # Subtract one from cursor_pos, but do not go below zero:
                     self.cursor_position = max(self.cursor_position - 1, 0)
-                elif event.key == pl.K_DELETE:
+                elif event.key == K_DELETE:
                     self._input_string = self._input_string[:self.cursor_position] + \
                                          self._input_string[self.cursor_position + 1:]
 
-                elif event.key == pl.K_RETURN:
+                elif event.key == K_RETURN:
                     return True
 
-                elif event.key == pl.K_RIGHT:
+                elif event.key == K_RIGHT:
                     # Add one to cursor_pos, but do not exceed len(input_string)
                     self.cursor_position = min(self.cursor_position + 1, len(self._input_string))
 
-                elif event.key == pl.K_LEFT:
+                elif event.key == K_LEFT:
                     # Subtract one from cursor_pos, but do not go below zero:
                     self.cursor_position = max(self.cursor_position - 1, 0)
 
-                elif event.key == pl.K_END:
+                elif event.key == K_END:
                     self.cursor_position = len(self._input_string)
 
-                elif event.key == pl.K_HOME:
+                elif event.key == K_HOME:
                     self.cursor_position = 0
 
                 else:
@@ -556,7 +556,7 @@ class TextInput:
                                          self._input_string[self.cursor_position:]
                     self.cursor_position += len(event.unicode)  # Some are empty, e.g. K_UP
 
-            elif event.type == pl.KEYUP:
+            elif event.type == KEYUP:
                 # *** Because KEYUP doesn't include event.unicode, this dict is stored in such a weird way
                 if event.key in self.keyrepeat_counters:
                     del self.keyrepeat_counters[event.key]
@@ -570,7 +570,7 @@ class TextInput:
                                                   self.keyrepeat_interval_ms
 
                 event_key, event_unicode = key, self.keyrepeat_counters[key][1]
-                pygame.event.post(pygame.event.Event(pl.KEYDOWN, key=event_key, unicode=event_unicode))
+                pygame.event.post(pygame.event.Event(KEYDOWN, key=event_key, unicode=event_unicode))
 
         # Rerender text surface:
         self.surface = self.font_object.render(self._input_string, self.antialias, self.text_color)

@@ -85,12 +85,11 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
               [x + processing.__dx + largeur, y + processing.__dy],
               [x + processing.__dx + largeur, y + processing.__dy + hauteur],
               [x + processing.__dx, y + processing.__dy + hauteur]]
-    points = processing.rotation(points)
 
-    if image is None:
-        if processing.__no_fill is False:
-            pygame.draw.polygon(processing.screen, processing.__fill_color, points)
-    else:
+    # if image is None:
+    polygone(points)
+    if image is not None:
+
         dx = 0  # left
         dy = 0  # top
         if allign_h == "left":
@@ -107,13 +106,18 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
         img = pygame.transform.rotate(image, r)
         x += image.get_width() / 2
         y += image.get_height() / 2
-        x, y = processing.rotation([[x + dx + processing.__dx, y + dy + processing.__dy]])[0]
+        h,v = False, False
+        if processing.__flip_axe_v is not None:
+            v = True
+        if processing.__flip_axe_h is not None:
+            h = True
+        img = pygame.transform.flip(img,v,h)
+        x, y = processing.transformation([[x + dx + processing.__dx, y + dy + processing.__dy]])[0]
         processing.screen.blit(img,
                                (x - img.get_width() / 2, y - img.get_height() / 2),
                                (0, 0, img.get_width(), img.get_height()))
-    if processing.__border_width > 0:
-        pygame.draw.polygon(processing.screen, processing.__border_color,
-                            points, width=processing.__border_width)
+        if processing.__border_width > 0:
+            processing.not_filled_polygone(points)
 
 
 def square(x: int, y: int, largeur: int):
@@ -130,7 +134,7 @@ def point(x: int, y: int):
 def line(x1: int, y1: int, x2: int, y2: int):
     """Trace un segment reliant les deux points de coordonnées (x1, y1) et (x2, y2)."""
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)]
-    points = processing.rotation(points)
+    points = processing.transformation(points)
     pygame.draw.line(processing.screen, processing.__border_color, *points, processing.__border_width)
 
 
@@ -170,16 +174,7 @@ def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int):
     """Trace un triangle dont les trois sommets ont pour coordonnées (x1, y1), (x2, y2), et (x3, y3)."""
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
         , (x3 + processing.__dx, y3 + processing.__dy)]
-    points = processing.rotation(points)
-    if processing.__no_fill is True:
-        pygame.draw.polygon(processing.screen, processing.__border_color, points
-                            , width=processing.__border_width)
-    else:
-        pygame.draw.polygon(processing.screen, processing.__fill_color,
-                            points)
-        if processing.__border_width != 0:
-            pygame.draw.polygon(processing.screen, processing.__border_color,
-                                points, width=processing.__border_width)
+    polygone(points)
 
 
 def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int):
@@ -187,21 +182,12 @@ def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int)
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
         , (x3 + processing.__dx, y3 + processing.__dy),
               (x4 + processing.__dx, y4 + processing.__dy)]
-    points = processing.rotation(points)
-    if processing.__no_fill is True:
-        pygame.draw.polygon(processing.screen, processing.__border_color,
-                            points, width=processing.__border_width)
-    else:
-        pygame.draw.polygon(processing.screen, processing.__fill_color,
-                            points)
-        if processing.__border_width != 0:
-            pygame.draw.polygon(processing.screen, processing.__border_color,
-                                points, width=processing.__border_width)
+    polygone(points)
 
 
 def polygone(points:list):
     """Trace un polygone à partie d'une liste de points"""
-    points = processing.rotation(points)
+    points = processing.transformation(points)
     if processing.__no_fill is True:
         pygame.draw.polygon(processing.screen, processing.__border_color,
                             points, width=processing.__border_width)

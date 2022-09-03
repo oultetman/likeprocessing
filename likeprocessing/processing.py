@@ -42,6 +42,8 @@ screen = pygame.display.set_mode((300, 200))
 Boite.init(screen)
 __rotation = 0
 __axis = None
+__flip_axe_v = None
+__flip_axe_h = None
 from random import randint
 from likeprocessing.affichage import *
 from likeprocessing.transformation import *
