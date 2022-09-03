@@ -20,19 +20,28 @@ def background(couleur_image: any):
 
 def noFill():
     """supprime la couleur de fond d'une figure (rect, square, ellipse ... """
-    processing.__border_width = 1
+    processing.__border_width = processing.__last_border_width
     processing.__no_fill = True
 
 
-def stroke(couleur: any):
+def stroke(couleur: any=None):
     """initialise la couleur du bord des figures"""
+    if couleur is None:
+        return processing.__border_color
     c = rgb_color(couleur)
+    processing.__border_width = processing.__last_border_width
     if c is not None:
         processing.__border_color = c
 
 
+def strokWeight(epaisseur:int):
+    processing.__border_width = epaisseur
+    processing.__last_border_width = processing.__border_width
+
+
 def noStroke():
     """supprime le bord des figures"""
+    processing.__last_border_width = processing.__border_width
     processing.__border_width = 0
 
 
@@ -117,22 +126,10 @@ def rgb_color(valeur) -> [tuple, None]:
     return None
 
 
-def translate(x: int, y: int):
-    processing.__dx += x
-    processing.__dy += y
 
 
-def get_axis():
-    return processing.__axis
 
 
-def get_rotation():
-    return processing.__rotation
-
-
-def rotate(angle: float, axis=(0, 0)):
-    processing.__rotation = angle * angleMode()
-    processing.__axis = axis
 
 
 def reset():
@@ -142,18 +139,4 @@ def reset():
     processing.__axis = None
 
 
-def rotation(points: list) -> list:
-    pr = []
-    if get_rotation() == 0:
-        return points
-    else:
-        a = complex(*get_axis())
-        angle = get_rotation()
-        for pt in points:
-            p = complex(*pt)
-            p -= a
-            r = complex(math.cos(angle), -math.sin(angle))
-            p *= r
-            p += a
-            pr.append([p.real, p.imag])
-        return pr
+

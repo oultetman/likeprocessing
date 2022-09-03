@@ -8,6 +8,7 @@ def list_to_2d_list(one_d_liste:list,nb_elements=2)->list[list]:
             l.append(one_d_liste[i+j])
         two_d_list.append(l)
     return two_d_list
+
 if __name__ == '__main__':
     l= [1,2,3,4,5,6,7,8,9,10,11,12]
     print(list_to_2d_list(l))

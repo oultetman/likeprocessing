@@ -86,6 +86,7 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
               [x + processing.__dx + largeur, y + processing.__dy + hauteur],
               [x + processing.__dx, y + processing.__dy + hauteur]]
     points = processing.rotation(points)
+
     if image is None:
         if processing.__no_fill is False:
             pygame.draw.polygon(processing.screen, processing.__fill_color, points)
@@ -104,11 +105,11 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
             dy = max(0, hauteur - image.get_height())
         r = processing.get_rotation() * 180 / math.pi
         img = pygame.transform.rotate(image, r)
-        x += image.get_width()/2
-        y += image.get_height()/2
+        x += image.get_width() / 2
+        y += image.get_height() / 2
         x, y = processing.rotation([[x + dx + processing.__dx, y + dy + processing.__dy]])[0]
         processing.screen.blit(img,
-                               (x-img.get_width()/2, y-img.get_height()/2),
+                               (x - img.get_width() / 2, y - img.get_height() / 2),
                                (0, 0, img.get_width(), img.get_height()))
     if processing.__border_width > 0:
         pygame.draw.polygon(processing.screen, processing.__border_color,
@@ -130,7 +131,7 @@ def line(x1: int, y1: int, x2: int, y2: int):
     """Trace un segment reliant les deux points de coordonnées (x1, y1) et (x2, y2)."""
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)]
     points = processing.rotation(points)
-    pygame.draw.line(processing.screen, processing.__border_color,*points, processing.__border_width)
+    pygame.draw.line(processing.screen, processing.__border_color, *points, processing.__border_width)
 
 
 def ellipseMode(corners_center: str):
@@ -145,32 +146,33 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int):
     """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
     et la hauteur prennent les valeurs fixées."""
 
-    if processing.__ellipse_center_mode:
-        x -= largeur / 2
-        y -= hauteur / 2
-    if processing.__no_fill == False:
-        pygame.draw.ellipse(processing.screen, processing.__fill_color,
-                            (x + processing.__dx, y + processing.__dy, largeur, hauteur),
-                            0)
-    if processing.__border_width > 0:
-        pygame.draw.ellipse(processing.screen, processing.__border_color,
-                            (x + processing.__dx, y + processing.__dy, largeur, hauteur),
-                            processing.__border_width)
-
+    # if processing.__ellipse_center_mode:
+    #     x -= largeur / 2
+    #     y -= hauteur / 2
+    # if processing.__no_fill == False:
+    #     pygame.draw.ellipse(processing.screen, processing.__fill_color,
+    #                         (x + processing.__dx, y + processing.__dy, largeur, hauteur),
+    #                         0)
+    # if processing.__border_width > 0:
+    #     pygame.draw.ellipse(processing.screen, processing.__border_color,
+    #                         (x + processing.__dx, y + processing.__dy, largeur, hauteur),
+    #                         processing.__border_width)
+    arc(x, y, largeur, hauteur, pie=False)
 
 def circle(x: int, y: int, diametre: int):
     """Trace un cercle dont le centre a pour coordonnées (x, y) et dont le diamètre prend la valeur fixée.
     Idem ellipse((x, y, diametre, diametre)"""
-    ellipse(x, y, diametre, diametre)
+    #ellipse(x, y, diametre, diametre)
+    arc(x,y,diametre,diametre,pie=False)
 
 
 def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int):
     """Trace un triangle dont les trois sommets ont pour coordonnées (x1, y1), (x2, y2), et (x3, y3)."""
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
-                                , (x3 + processing.__dx, y3 + processing.__dy)]
+        , (x3 + processing.__dx, y3 + processing.__dy)]
     points = processing.rotation(points)
     if processing.__no_fill is True:
-        pygame.draw.polygon(processing.screen, processing.__border_color,points
+        pygame.draw.polygon(processing.screen, processing.__border_color, points
                             , width=processing.__border_width)
     else:
         pygame.draw.polygon(processing.screen, processing.__fill_color,
@@ -183,8 +185,8 @@ def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int):
 def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int):
     """Trace un quadrilatère dont les quatre sommets ont pour coordonnées (x1, y1), (x2, y2), (x3, y3) et (x4, y4)."""
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
-                                , (x3 + processing.__dx, y3 + processing.__dy),
-                             (x4 + processing.__dx, y4 + processing.__dy)]
+        , (x3 + processing.__dx, y3 + processing.__dy),
+              (x4 + processing.__dx, y4 + processing.__dy)]
     points = processing.rotation(points)
     if processing.__no_fill is True:
         pygame.draw.polygon(processing.screen, processing.__border_color,
@@ -196,6 +198,19 @@ def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int)
             pygame.draw.polygon(processing.screen, processing.__border_color,
                                 points, width=processing.__border_width)
 
+
+def polygone(points:list):
+    """Trace un polygone à partie d'une liste de points"""
+    points = processing.rotation(points)
+    if processing.__no_fill is True:
+        pygame.draw.polygon(processing.screen, processing.__border_color,
+                            points, width=processing.__border_width)
+    else:
+        pygame.draw.polygon(processing.screen, processing.__fill_color,
+                            points)
+        if processing.__border_width != 0:
+            pygame.draw.polygon(processing.screen, processing.__border_color,
+                                points, width=processing.__border_width)
 
 def not_filled_polygone(points: list) -> None:
     points.append(points[0])
@@ -234,15 +249,27 @@ def sector(x: int, y: int, rayon: int, angleDebut: float, angleFin: float):
             pygame.draw.polygon(processing.screen, processing.__border_color, points, width=processing.__border_width)
 
 
-def arc(x: int, y: int, largeur: int, hauteur: int, angleDebut: float, angleFin: float):
+def arc(x: int, y: int, largeur: int, hauteur: int, angleDebut: float=None, angleFin: float=None, **kwargs):
     """Créer une portion d'ellipse type part de tarte qui pourra être rempli entre les points repérés par
-    les angles angleDébut et angleFin (en radians). x et y sont les coordonnées du centre du cercle."""
+    les angles angleDébut et angleFin. x et y sont les coordonnées du centre du cercle."""
+    pie = kwargs.get("pie", True)
+    # recalcule de x et y si x,y centre de l'ellipse
     if not processing.__ellipse_center_mode:
         x += largeur / 2
         y += hauteur / 2
-    angleDebut *= trigo.angleMode()
-    angleFin *= trigo.angleMode()
-    points = [(x + processing.__dx, y + processing.__dy)]
+
+    # conversion des angle en radians
+    if angleDebut is None:
+        angleDebut = 0
+        angleFin = 2*processing.PI
+    else:
+        angleDebut = processing.radians(angleDebut)
+        angleFin = processing.radians(angleFin)
+    points = []
+
+    # calcul des points de l'arc
+    if pie:
+        points = [(x + processing.__dx, y + processing.__dy)]
     if angleDebut > angleFin:
         angleFin += 2 * math.pi
     angle = angleDebut
@@ -252,20 +279,56 @@ def arc(x: int, y: int, largeur: int, hauteur: int, angleDebut: float, angleFin:
         angle += 0.1
     points.append((largeur * math.cos(angleFin) / 2 + processing.__dx + x,
                    -hauteur * math.sin(angleFin) / 2 + processing.__dy + y))
-    if processing.__no_fill is True:
-        k_line(points)
-    else:
-        pygame.draw.polygon(processing.screen, processing.__fill_color, points)
-        if processing.__border_width > 0:
-            pygame.draw.polygon(processing.screen, processing.__border_color, points, width=processing.__border_width)
+    # dessin de l'arc en fonction du paramétrage
+    # if processing.__no_fill is True and processing.__border_width > 0:
+    #     if pie:
+    #         pygame.draw.polygon(processing.screen, processing.__border_color, points, width=processing.__border_width)
+    #     else:
+    #         k_line(points)
+    # else:
+    #     pygame.draw.polygon(processing.screen, processing.__fill_color, points)
+    #     if processing.__border_width > 0:
+    #         pygame.draw.polygon(processing.screen, processing.__border_color, points, width=processing.__border_width)
+    polygone(points)
 
-
-def circle_arc(x: int, y: int, rayon: int, angleDebut: float, angleFin: float):
+def circle_arc(x: int, y: int, rayon: int, angleDebut: float, angleFin: float,**kwargs):
     """idem arc mais à partir d'un disque"""
-    arc(x, y, rayon, rayon, angleDebut, angleFin)
+    arc(x, y, rayon, rayon, angleDebut, angleFin,**kwargs)
 
+def arc_points(x: int, y: int, largeur: int, hauteur: int, angleDebut: float, angleFin: float,sens_trigo=True) -> list:
+    """retourne une liste des points du contour de l'ellipse entre les points repérés par
+    les angles angleDébut et angleFin (en radians). x et y sont les coordonnées du centre du cercle."""
+    # recalcule de x et y si x,y centre de l'ellipse
+    if not processing.__ellipse_center_mode:
+        x += largeur / 2
+        y += hauteur / 2
+
+    # conversion des angle en radians
+    angleDebut *= trigo.angleMode()
+    angleFin *= trigo.angleMode()
+    points = []
+
+    # calcul des points de l'arc
+    pas = 0.1
+    if angleDebut > angleFin and sens_trigo:
+        angleFin+=2*processing.PI
+    if not sens_trigo:
+        pas = -pas
+    angle = angleDebut
+    if pas > 0:
+        while angle < angleFin - pas:
+            points.append((largeur * math.cos(angle) / 2 + processing.__dx + x,
+                           -hauteur * math.sin(angle) / 2 + processing.__dy + y))
+            angle += pas
+    else:
+        while angle > angleFin - pas:
+            points.append((largeur * math.cos(angle) / 2 + processing.__dx + x,
+                           -hauteur * math.sin(angle) / 2 + processing.__dy + y))
+            angle += pas
+    points.append((largeur * math.cos(angleFin) / 2 + processing.__dx + x,
+                   -hauteur * math.sin(angleFin) / 2 + processing.__dy + y))
+    return points
 
 def dist(x1, y1, x2, y2):
     """retourne la distance entre deux points"""
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-

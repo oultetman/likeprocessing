@@ -19,6 +19,7 @@ __width, __height = 300, 200
 __background_color = (0, 0, 0)
 __background_image = None
 __border_width = 1
+__last_border_width = 1
 __fill_color = (255, 255, 255)
 __border_color = (0, 0, 0)
 __fps = 60
@@ -43,6 +44,8 @@ __rotation = 0
 __axis = None
 from random import randint
 from likeprocessing.affichage import *
+from likeprocessing.transformation import *
+from pygame.locals import *
 from likeprocessing.trigo import *
 from likeprocessing.formes import *
 from likeprocessing.tempos import Tempo
@@ -142,7 +145,7 @@ def draw_background():
 
 def keys() -> list[bool]:
     """l'etat des touches du clavier"""
-    return list(pygame.key.get_pressed())
+    return pygame.key.get_pressed()
 
 
 def keyIsPressed() -> bool:
@@ -157,7 +160,7 @@ def isKeyPressed():
 
 def keyIsDown(code) -> bool:
     """retourne True si une touche(code) est pressée """
-    return processing.keys()[code] == 1
+    return pygame.key.get_pressed()[code] == True
 
 
 def frameCount():
