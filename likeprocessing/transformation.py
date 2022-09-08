@@ -3,30 +3,22 @@ from likeprocessing.trigo import *
 
 
 def translate(x: int, y: int):
-    processing.__dx += x
-    processing.__dy += y
-
-
-def get_axis():
-    return processing.__axis
-
-
-def get_rotation():
-    return processing.__rotation
+    processing.set_dx(processing.get_dx()+x)
+    processing.set_dy(processing.get_dy()+y)
 
 
 def rotate(angle: float, axis=(0, 0)):
-    processing.__rotation = angle * angleMode()
-    processing.__axis = axis
+    processing.set_rotation(angle)
+    processing.set_axis(axis)
 
 
 def rotation(points: list) -> list:
     pr = []
-    if get_rotation() == 0:
+    if processing.get_rotation() == 0:
         return points
     else:
-        a = complex(*get_axis()) + complex(processing.__dx, processing.__dy)
-        angle = get_rotation()
+        a = complex(*processing.get_axis()) + complex(processing.__dx, processing.__dy)
+        angle = processing.get_rotation()
         for pt in points:
             p = complex(*pt)
             p -= a

@@ -32,6 +32,9 @@ def textCouleurCadre(couleur=None):
 
 def text(texte: str, x, y, largeur=0, hauteur=0):
     """Ecrit le texte à la position x,y en fonction du style et de alignement courant"""
+    if processing.__rect_center_mode:
+        x -= largeur / 2
+        y -= hauteur / 2
     police, size = textFont()
     if textStyle() == "BOLD":
         b = True
@@ -46,7 +49,8 @@ def text(texte: str, x, y, largeur=0, hauteur=0):
         b = False
         i = False
     h, v = align_h = textAlign()
-    t = Label(None, (x, y, largeur, hauteur), texte, police, size, couleurFond=processing.get_fill_color(),
+    t = Label(None, (x + processing.__dx, y + processing.__dy, largeur, hauteur), texte, police, size,
+              couleurFond=processing.get_fill_color(),
               couleurBord=processing.get_border_color(), largeurBord=processing.get_border_width(), bold=b, italic=i,
               align_h=h, align_v=v)
     t.draw()

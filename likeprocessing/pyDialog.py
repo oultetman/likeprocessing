@@ -1,4 +1,4 @@
-﻿import likeprocessing as processing
+﻿import likeprocessing.processing as processing
 import os.path
 import pygame
 from pygame.constants import *
@@ -57,7 +57,7 @@ class Boite(pygame.Rect):
         pass
 
 
-class PygTexte(Boite):
+class MultiLineText(Boite):
     def __init__(self, parent, rect, texte, police='arial', taille=12, angle=0, **kwargs):
         if len(rect) == 2:
             rect = (rect[0], rect[1], 0, 0)
@@ -70,7 +70,6 @@ class PygTexte(Boite):
         self.couleurPolice = kwargs.get('couleurPolice', BLACK)
         self.angle = angle
         self.image = self.imageTexte()
-
     @property
     def texte(self):
         return self._texte
@@ -207,9 +206,14 @@ class LineEdit(Boite):
         if val is not self._focus:
             self._focus = not self._focus
             self.texte.focus = self._focus
+            if self.focus:
+                self.couleurBord = "blue"
+            else:
+                self.couleurBord ="black"
 
     def update(self, events):
-        self.texte.update(events)
+        if self.focus:
+            self.texte.update(events)
 
     def draw(self):
         super().draw()
@@ -220,6 +224,19 @@ class LineEdit(Boite):
 
     def __len__(self):
         return len(self.texte.input_string)
+
+    def scan_mouse(self):
+        x, y = processing.mouseXY()
+        click = processing.click
+        if self.collidepoint(x, y):
+            self.mouseOn = True
+        else:
+            self.mouseOn = False
+        if click is True and self.focus is False:
+            self.focus = True
+
+    def text(self):
+        return self.texte.get_text()
 
 
 class Bouton(Boite):
@@ -237,7 +254,7 @@ class Bouton(Boite):
         self.fonction = kwargs.get("command", None)
         self.mouseOn = False
         self.mouseClick = False
-        self.texte = PygTexte(parent, (2, 2), texte, couleurFond=self.couleurFond, couleurBord=self.couleurFond)
+        self.texte = MultiLineText(parent, (2, 2), texte, couleurFond=self.couleurFond, couleurBord=self.couleurFond)
         self.texte.left = self.left + (self.width - self.texte.width) // 2
         self.texte.top = self.top + (self.height - self.texte.height) // 2
 
@@ -325,7 +342,7 @@ class Dialog(Boite):
             self.center_me()
 
     def center_me(self):
-        """center la boite sue l'écran"""
+        """center la boite sur l'écran"""
         self.x = (self.parent.width - self.width) // 2
         self.y = (self.parent.height - self.height) // 2
 
@@ -667,6 +684,6 @@ class GroupeBoite(list):
 
 
 if __name__ == '__main__':
-    t = PygTexte(0, 1, "bonjour")
+    t = MultiLineText(0, 1, "bonjour")
     b = Boite((100, 150, 50, 20))
     b.draw()

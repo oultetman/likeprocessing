@@ -33,6 +33,7 @@ __quitter = False
 __title = "processing"
 __rect_center_mode = False
 __ellipse_center_mode = False
+__events = []
 var_globales = {}
 click = False
 __frameCount = 0
@@ -145,7 +146,7 @@ def draw_background():
         screen.fill(__background_color)
 
 
-def keys() -> list[bool]:
+def keys() -> [bool]:
     """l'etat des touches du clavier"""
     return pygame.key.get_pressed()
 
@@ -200,7 +201,7 @@ def quitter(value=None):
 
 def run(globales):
     global __key_pressed, click, click_down, click_up, keys, __quitter, var_globales, __frameCount, clock, secondes
-    global __tempo_seconde, __tempo_centieme, centiemes
+    global __tempo_seconde, __tempo_centieme, centiemes, __events
     successes, failures = pygame.init()
     print("{0} successes and {1} failures".format(successes, failures))
     clock = pygame.time.Clock()
@@ -208,7 +209,8 @@ def run(globales):
         globales['setup']()
     while True:
         clock.tick(__fps)
-        for event in pygame.event.get():
+        __events = pygame.event.get()
+        for event in __events:
             if event.type == pygame.QUIT:
                 if globales.get('quit'):
                     __quitter = True
@@ -241,6 +243,19 @@ def run(globales):
             globales['quit']()
         pygame.display.update()  # Or pygame.display.flip()
         __frameCount += 1
+
+
+def set_axis(axe: tuple):
+    """initialise la valeur de l''axe de rotation"""
+    if isinstance(axe,tuple) and len(axe)==2:
+        processing.__axis = axe
+    else:
+        raise TypeError("axe is tuple and his length must be equal 2")
+
+
+def get_axis() -> tuple:
+    """retourne la valeur de l''axe de rotation"""
+    return processing.__axis
 
 
 def set_font_size(taille):
@@ -293,3 +308,66 @@ def set_text_align_v(vertical: str):
 def get_text_align_v() -> str:
     """retoune l'alignement vertical courant du texte"""
     return processing.__text_align_v
+
+
+def set_flip_axe_v(axe_v: [int, float]):
+    """initialise l'axe de symétrie verticale"""
+    processing.__flip_axe_v = axe_v
+
+
+def get_flip_axe_v() -> [int, float]:
+    """retourne l'axe de symétrie verticale"""
+    return processing.__flip_axe_v
+
+
+def set_flip_axe_h(axe_h: [int, float]):
+    """initialise l'axe de symétrie horizontale"""
+    processing.__flip_axe_h = axe_h
+
+
+def get_flip_axe_h() -> [int, float]:
+    """retourne l'axe de symétrie horizontale"""
+    return processing.__flip_axe_h
+
+def set_dx(translation_absolue_x: [int,float]):
+    """initialise la valeur courant de la translation"""
+    processing.__dx = translation_absolue_x
+
+
+def get_dx() -> [int,float]:
+    """retourne la valeur courant de la translation"""
+    return processing.__dx
+
+def set_dy(tanslation_absole_y: [int,float]):
+    """initialise la translation absolue en y"""
+    processing.__dy = tanslation_absole_y
+
+
+def get_dy() -> [int,float]:
+    """retourne la translation absolue en y"""
+    return processing.__dy
+
+def set_rotation(angle: [int,float]):
+    """initialise la valeur de l'angle de rotation"""
+    processing.__rotation = radians(angle)
+
+
+def get_rotation() -> [int,float]:
+    """retourne la valeur de l'angle de rotation"""
+    return processing.__rotation/get_angle_mode()
+
+def get_angle_mode() -> float:
+    """retourne la valeur de angle mode"""
+    return processing.__angle_mode
+
+def set_rect_center_mode(center: bool):
+    """initialise la valeur de rect_center_mode"""
+    processing.__rect_center_mode = center
+
+
+def get_rect_center_mode() -> bool:
+    """retourne la valeur de rect_center_mode"""
+    return processing.__rect_center_mode
+
+
+

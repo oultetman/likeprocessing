@@ -24,7 +24,7 @@ def noFill():
     processing.__no_fill = True
 
 
-def stroke(couleur: any=None):
+def stroke(couleur: any = None):
     """initialise la couleur du bord des figures"""
     if couleur is None:
         return processing.__border_color
@@ -34,7 +34,7 @@ def stroke(couleur: any=None):
         processing.__border_color = c
 
 
-def strokWeight(epaisseur:int):
+def strokWeight(epaisseur: int):
     processing.__border_width = epaisseur
     processing.__last_border_width = processing.__border_width
 
@@ -126,12 +126,6 @@ def rgb_color(valeur) -> [tuple, None]:
     return None
 
 
-
-
-
-
-
-
 def reset():
     processing.__dx = 0
     processing.__dy = 0
@@ -139,6 +133,3 @@ def reset():
     processing.__axis = None
     processing.__flip_axe_v = None
     processing.__flip_axe_h = None
-
-
-
