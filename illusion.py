@@ -1,7 +1,7 @@
 from likeprocessing.processing import *
 
 angle = 0
-
+img = loadImage("fantome_jaune.png")
 
 def setup():
     createCanvas(400, 200)
@@ -35,7 +35,8 @@ def draw():
             fill('white')
         circle(100, 60 + i * 5, 120 - i * 10)
     rotate(angle, (300, 100))
-    rect(300, 100, 50, 25)
+    fill("grey")
+    rect(300, 100, 0, 0,image=img)
 
 
 run(globals())

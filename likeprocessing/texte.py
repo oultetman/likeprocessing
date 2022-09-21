@@ -32,10 +32,17 @@ def textCouleurCadre(couleur=None):
 
 def text(texte: str, x, y, largeur=0, hauteur=0):
     """Ecrit le texte à la position x,y en fonction du style et de alignement courant"""
+    police, size = textFont()
     if processing.__rect_center_mode:
+        if largeur == 0 and hauteur == 0:
+            ps = pygame.font.SysFont(police, size)
+            largeur,hauteur = ps.size(texte)
+            largeur+=4
+            hauteur+=4
         x -= largeur / 2
         y -= hauteur / 2
-    police, size = textFont()
+
+
     if textStyle() == "BOLD":
         b = True
         i = False
@@ -49,8 +56,12 @@ def text(texte: str, x, y, largeur=0, hauteur=0):
         b = False
         i = False
     h, v = align_h = textAlign()
+    if processing.__no_fill:
+        couleur = None
+    else:
+        couleur = processing.get_fill_color()
     t = Label(None, (x + processing.__dx, y + processing.__dy, largeur, hauteur), texte, police, size,
-              couleurFond=processing.get_fill_color(),
+              couleurFond=couleur,
               couleurBord=processing.get_border_color(), largeurBord=processing.get_border_width(), bold=b, italic=i,
               align_h=h, align_v=v)
     t.draw()

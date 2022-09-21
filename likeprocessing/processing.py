@@ -45,11 +45,11 @@ __rotation = 0
 __axis = None
 __flip_axe_v = None
 __flip_axe_h = None
+ihm = []
 from random import randint
 from likeprocessing.affichage import *
 from likeprocessing.transformation import *
 from pygame.locals import *
-from likeprocessing.trigo import *
 from likeprocessing.formes import *
 from likeprocessing.tempos import Tempo
 from likeprocessing.images import *
@@ -190,6 +190,8 @@ def redraw():
     """force le redessin de l'écran"""
     pygame.display.update()
 
+def events()->list:
+    return processing.__events
 
 def quitter(value=None):
     global __quitter
@@ -352,13 +354,14 @@ def set_rotation(angle: [int,float]):
     processing.__rotation = radians(angle)
 
 
-def get_rotation() -> [int,float]:
-    """retourne la valeur de l'angle de rotation"""
-    return processing.__rotation/get_angle_mode()
+
 
 def get_angle_mode() -> float:
     """retourne la valeur de angle mode"""
     return processing.__angle_mode
+
+def set_angle_mode(valeur:float):
+    processing.__angle_mode = valeur
 
 def set_rect_center_mode(center: bool):
     """initialise la valeur de rect_center_mode"""

@@ -6,7 +6,7 @@ import pygame
 
 
 def rectMode(corners_center: str="")->str:
-    """change center mode 'CORNERS' or 'CENTER' """
+    """change center mode 'CORNERS' or 'CENTER' and return rectMode mode"""
     if corners_center.upper() == "CORNERS":
         processing.set_rect_center_mode(False)
     elif corners_center.upper() == "CENTER":
@@ -107,7 +107,7 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
             dy = max(0, (hauteur - image.get_height()) // 2)
         elif allign_v == "bottom":
             dy = max(0, hauteur - image.get_height())
-        r = processing.get_rotation() * 180 / math.pi
+        r = processing.get_rotation_rad() * 180 / math.pi
         img = pygame.transform.rotate(image, r)
         x += image.get_width() / 2
         y += image.get_height() / 2
@@ -163,7 +163,7 @@ def get_ellipse_center_mode() -> str:
 def ellipse(x: int, y: int, largeur: int, hauteur: int):
     """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
     et la hauteur prennent les valeurs fixées."""
-    if processing.get_rotation() == 0:
+    if processing.get_rotation_rad() == 0:
         if processing.__ellipse_center_mode:
             x -= largeur / 2
             y -= hauteur / 2

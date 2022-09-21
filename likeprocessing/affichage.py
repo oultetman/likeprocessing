@@ -20,7 +20,7 @@ def background(couleur_image: any):
 
 def noFill():
     """supprime la couleur de fond d'une figure (rect, square, ellipse ... """
-    processing.__border_width = processing.__last_border_width
+    # processing.__border_width = processing.__last_border_width
     processing.__no_fill = True
 
 
@@ -50,10 +50,16 @@ def get_border_width():
 
 
 def get_fill_color():
+    """return current color fill"""
     return processing.__fill_color
 
 
 def get_border_color():
+    """return current border color"""
+    return processing.__border_color
+
+def get_stroke():
+    """return current border color"""
     return processing.__border_color
 
 
@@ -105,7 +111,7 @@ def stop() -> None:
 
 
 def rgb_color(valeur) -> [tuple, None]:
-    """retourne un tuple de 4 éléments rgb + transparance à partir d"un tuple rgb, d'une chaine de caractères
+    """retourne un tuple de 4 éléments rgb + transparence à partir d"un tuple rgb, d'une chaine de caractères
     désignant la couleur ex black, d'une chaine #12FAE6 ou #12FAE6FF"""
     if isinstance(valeur, tuple):
         if len(valeur) == 3:

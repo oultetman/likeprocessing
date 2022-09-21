@@ -3,22 +3,42 @@ from likeprocessing.trigo import *
 
 
 def translate(x: int, y: int):
-    processing.set_dx(processing.get_dx()+x)
-    processing.set_dy(processing.get_dy()+y)
+    processing.set_dx(processing.get_dx() + x)
+    processing.set_dy(processing.get_dy() + y)
+
+
+def init_translate():
+    """set absolute translation dx,dy = 0,0"""
+    processing.set_dx(0)
+    processing.set_dy(0)
+
+
+def get_translate() -> tuple:
+    """return translation like tuple (x,y)"""
+    return (processing.get_dx(), processing.get_dy())
 
 
 def rotate(angle: float, axis=(0, 0)):
+    """execute a rotation on next drawing fonctions"""
     processing.set_rotation(angle)
     processing.set_axis(axis)
 
+def get_rotation() -> [int,float]:
+    """retourne la valeur de l'angle de rotation dans l'unité choisie (voir angleMode)"""
+    return processing.__rotation/processing.get_angle_mode()
+
+def get_rotation_rad() -> [int,float]:
+    """retourne la valeur de l'angle de rotation en radian"""
+    return processing.__rotation
 
 def rotation(points: list) -> list:
+    """rotation calculation """
     pr = []
-    if processing.get_rotation() == 0:
+    if processing.get_rotation_rad() == 0:
         return points
     else:
         a = complex(*processing.get_axis()) + complex(processing.__dx, processing.__dy)
-        angle = processing.get_rotation()
+        angle = processing.get_rotation_rad()
         for pt in points:
             p = complex(*pt)
             p -= a
@@ -30,12 +50,12 @@ def rotation(points: list) -> list:
 
 
 def flip_v(axe_v):
-    """entraîne une symétrie verticale par rapport à l'axe axe_y"""
+    """execute a vertical symmetry on next drawing functions with reference to axis x=axe_v"""
     processing.__flip_axe_v = axe_v
 
 
 def flip_h(axe_h):
-    """entraîne une symétrie horizontale par rapport à l'axe axe_x"""
+    """execute a horizontal symmetry on next drawing functions with reference to axis y=axe_h"""
     processing.__flip_axe_h = axe_h
 
 
@@ -60,6 +80,8 @@ def symetrie_x(points: list) -> list:
 
 
 def transformation(points: list) -> list:
+    """excecute rotation and symmetry transformation
+    on next drawing functions"""
     pts = processing.rotation(points)
     pts = processing.symetrie_y(pts)
     pts = processing.symetrie_x(pts)
