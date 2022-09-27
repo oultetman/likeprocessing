@@ -45,6 +45,10 @@ class Boite(pygame.Rect):
     def setY(self, value: int):
         self.y = value
 
+    def move(self,x:int,y:int):
+        self.setX(x)
+        self.setY(y)
+
     def draw(self):
         if self.is_disabled is True:
             couleur_bord = self.couleurBordDisabled

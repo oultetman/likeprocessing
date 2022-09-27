@@ -70,6 +70,13 @@ def fill(couleur: any):
         processing.__fill_color = c
         processing.__no_fill = False
 
+def fill_mouse_on(couleur: any):
+    """initialise la couleur de fond des figures quand la souris est dessus"""
+    c = rgb_color(couleur)
+    if c is not None:
+        processing.__fill_color_mouse_on = c
+def noFill_mouse_on():
+    processing.__fill_color_mouse_on = None
 
 def color(rouge: int, vert: int = None, bleu: int = None):
     if vert is None:

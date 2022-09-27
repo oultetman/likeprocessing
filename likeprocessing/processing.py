@@ -21,6 +21,7 @@ __background_image = None
 __border_width = 1
 __last_border_width = 1
 __fill_color = (255, 255, 255)
+__fill_color_mouse_on = None
 __border_color = (0, 0, 0)
 __fps = 60
 __no_loop = False

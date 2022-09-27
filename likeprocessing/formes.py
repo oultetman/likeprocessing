@@ -5,7 +5,40 @@ import likeprocessing.trigo as trigo
 import pygame
 
 
-def rectMode(corners_center: str="")->str:
+def in_polygone(x, y, points: list)->bool:
+    """retourne True si le point (x,y) est dans le polygone"""
+    segment = []
+    for i in range(0,len(points)-1):
+        if (points[i][0]>=x or points[i+1][0]>=x) and (points[i][1]<y<points[i+1][1] or points[i][1]>y>points[i+1][1]):
+            segment.append((points[i],points[i+1]))
+    if (points[0][0]>=x or points[-1][0]>=x) and (points[0][1]<y<points[-1][1] or points[0][1]>y>points[-1][1]):
+        segment.append((points[0],points[-1]))
+    if len(segment)%2 ==1:
+        return True
+    else:
+        nb = 0
+        for s in segment:
+            if (s[1][0]-s[0][0])!=0:
+                a = (s[1][1]-s[0][1])/(s[1][0]-s[0][0])
+                b = s[1][1] - a * s[1][0]
+                if (y - b)/a>=x:
+                    nb+=1
+            else:
+                nb+=1
+        return nb%2==1
+
+
+def in_ellipse(x,y,xe,ye,largeur,hauteur)->bool:
+    """retourne True si le point (x,y) est dans l'ellipse"""
+    angle = math.atan2(y-ye,x-xe)
+    r = math.sqrt((largeur*math.cos(angle)/2)**2 + (hauteur*math.sin(angle)/2)**2)
+    return dist(x,y,xe,ye)<r*0.95
+
+def in_circle(x,y,xc,yc,diametre)->bool:
+    """retourne True si le point (x,y) est dans le cercle"""
+    return dist(x,y,xc,yc)<diametre/2
+
+def rectMode(corners_center: str = "") -> str:
     """change center mode 'CORNERS' or 'CENTER' and return rectMode mode"""
     if corners_center.upper() == "CORNERS":
         processing.set_rect_center_mode(False)
@@ -17,6 +50,7 @@ def rectMode(corners_center: str="")->str:
         else:
             return "corners"
     return corners_center
+
 
 def rect1(x: int, y: int, largeur: int, hauteur: int, **kwarsg):
     """Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur.
@@ -143,7 +177,7 @@ def line(x1: int, y1: int, x2: int, y2: int):
     pygame.draw.line(processing.screen, processing.__border_color, *points, processing.__border_width)
 
 
-def ellipseMode(corners_center: str=""):
+def ellipseMode(corners_center: str = ""):
     """change center mode 'CORNERS' or 'CENTER' """
     if corners_center.upper() == "CORNERS":
         processing.__ellipse_center_mode = False
@@ -156,9 +190,11 @@ def ellipseMode(corners_center: str=""):
             return "corners"
     return corners_center
 
+
 def get_ellipse_center_mode() -> str:
     """retourne ellipse_center_mode"""
     return processing.__ellipse_center_mode
+
 
 def ellipse(x: int, y: int, largeur: int, hauteur: int):
     """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
@@ -168,9 +204,15 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int):
             x -= largeur / 2
             y -= hauteur / 2
         if processing.__no_fill == False:
-            pygame.draw.ellipse(processing.screen, processing.__fill_color,
-                                (x + processing.__dx, y + processing.__dy, largeur, hauteur),
-                                0)
+            if processing.__fill_color_mouse_on is not None and in_ellipse(*processing.mouseXY(),x+largeur/2,y+hauteur/2,largeur,hauteur):
+                pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
+                                    (x + processing.__dx, y + processing.__dy, largeur, hauteur),
+                                    0)
+            else:
+                pygame.draw.ellipse(processing.screen, processing.__fill_color,
+                                    (x + processing.__dx, y + processing.__dy, largeur, hauteur),
+                                    0)
+
         if processing.__border_width > 0:
             pygame.draw.ellipse(processing.screen, processing.__border_color,
                                 (x + processing.__dx, y + processing.__dy, largeur, hauteur),
@@ -189,7 +231,11 @@ def circle(x: int, y: int, diametre: int):
     if processing.__ellipse_center_mode:
         x -= diametre / 2
         y -= diametre / 2
-    if processing.__no_fill == False:
+    if processing.__fill_color_mouse_on is not None and in_circle(*processing.mouseXY(),x+diametre/2,y+diametre/2,diametre):
+        pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
+                            (x, y, diametre, diametre),
+                            0)
+    else:
         pygame.draw.ellipse(processing.screen, processing.__fill_color,
                             (x, y, diametre, diametre),
                             0)
@@ -221,8 +267,16 @@ def polygone(points: list):
         pygame.draw.polygon(processing.screen, processing.__border_color,
                             points, width=processing.__border_width)
     else:
-        pygame.draw.polygon(processing.screen, processing.__fill_color,
-                            points)
+        if processing.__fill_color_mouse_on is None:
+            pygame.draw.polygon(processing.screen, processing.__fill_color,
+                                points)
+        else:
+            if processing.in_polygone(*processing.mouseXY(), points):
+                pygame.draw.polygon(processing.screen, processing.__fill_color_mouse_on,
+                                    points)
+            else:
+                pygame.draw.polygon(processing.screen, processing.__fill_color,
+                                    points)
         if processing.__border_width != 0:
             pygame.draw.polygon(processing.screen, processing.__border_color,
                                 points, width=processing.__border_width)

@@ -14,6 +14,8 @@ def setup():
     ellipseMode("center")
     strokWeight(2)
 
+def compute():
+    in_polygone(-1,-1,[(0,0),(4,0),(4,2),(0,2)])
 
 def draw():
     global time, s, m, h
