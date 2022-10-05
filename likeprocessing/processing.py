@@ -1,6 +1,5 @@
 from likeprocessing.pyDialog import *
 import math
-
 HALF_PI = math.pi / 2
 PI = math.pi
 QUARTER_PI = math.pi / 4
@@ -21,11 +20,14 @@ __background_image = None
 __border_width = 1
 __last_border_width = 1
 __fill_color = (255, 255, 255)
+__last_fill_color = (255, 255, 255)
 __fill_color_mouse_on = None
 __border_color = (0, 0, 0)
+__last_border_color = (0, 0, 0)
 __fps = 60
 __no_loop = False
 __no_fill = False
+__last_no_fill = False
 __dx = 0
 __dy = 0
 __score = 0
@@ -36,7 +38,9 @@ __rect_center_mode = False
 __ellipse_center_mode = False
 __events = []
 var_globales = {}
-click = False
+__click = False
+__click_up = False
+__click_down = False
 __frameCount = 0
 objets = []
 aliens = None
@@ -174,7 +178,7 @@ def frameCount():
 
 def mouseIsPressed():
     """retourne True si une touche de la souris est appuyée"""
-    return click is True
+    return __click is True
 
 
 def mouse_button_pressed():
@@ -186,6 +190,11 @@ def mouse_button_pressed():
             return i
     return -1
 
+def mouse_click_up():
+    return processing.__click_up
+
+def mouse_click_down():
+    return processing.__click_down
 
 def redraw():
     """force le redessin de l'écran"""
@@ -203,7 +212,7 @@ def quitter(value=None):
 
 
 def run(globales):
-    global __key_pressed, click, click_down, click_up, keys, __quitter, var_globales, __frameCount, clock, secondes
+    global __key_pressed, __click, __click_down, __click_up, keys, __quitter, var_globales, __frameCount, clock, secondes
     global __tempo_seconde, __tempo_centieme, centiemes, __events
     successes, failures = pygame.init()
     print("{0} successes and {1} failures".format(successes, failures))
@@ -225,11 +234,12 @@ def run(globales):
                 if not 1 in pygame.key.get_pressed():
                     __key_pressed = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                click = True
-                click_down = True
+                if __click is False:
+                    __click = True
+                    __click_down = True
             elif event.type == pygame.MOUSEBUTTONUP:
-                click = False
-                click_up = True
+                __click = False
+                __click_up = True
 
         if globales.get('scan_event'):
             globales['scan_event']()
@@ -246,7 +256,8 @@ def run(globales):
             globales['quit']()
         pygame.display.update()  # Or pygame.display.flip()
         __frameCount += 1
-
+        __click_down = False
+        __click_up = False
 
 def set_axis(axe: tuple):
     """initialise la valeur de l''axe de rotation"""

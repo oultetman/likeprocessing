@@ -1,10 +1,13 @@
 import math
-
+from typing import Annotated, Union
 import likeprocessing.processing as processing
 import pygame
 from pygame.colordict import THECOLORS as COLORS
+from likeprocessing.exceptions import RgbError
 from likeprocessing.trigo import angleMode
 import likeprocessing.processing
+
+rgb_value = tuple[int,int,int]
 
 
 def background(couleur_image: any):
@@ -26,10 +29,10 @@ def noFill():
 
 def stroke(couleur: any = None):
     """initialise la couleur du bord des figures"""
+    processing.__border_width = processing.__last_border_width
     if couleur is None:
         return processing.__border_color
     c = rgb_color(couleur)
-    processing.__border_width = processing.__last_border_width
     if c is not None:
         processing.__border_color = c
 
@@ -45,6 +48,22 @@ def noStroke():
     processing.__border_width = 0
 
 
+def save_fill_stroke():
+    """save fill and stroke parameters"""
+    processing.__last_border_width = processing.__border_width
+    processing.__last_border_color = processing.__border_color
+    processing.__last_fill_color = processing.__fill_color
+    processing.__last_no_fill = processing.__no_fill
+
+
+def restore_fill_stroke():
+    """restore fill and stroke parameters"""
+    processing.__border_width = processing.__last_border_width
+    processing.__border_color = processing.__last_border_color
+    processing.__fill_color = processing.__last_fill_color
+    processing.__no_fill = processing.__last_no_fill
+
+
 def get_border_width():
     return processing.__border_width
 
@@ -58,25 +77,35 @@ def get_border_color():
     """return current border color"""
     return processing.__border_color
 
+
 def get_stroke():
     """return current border color"""
     return processing.__border_color
 
 
-def fill(couleur: any):
+def fill(couleur: Union[str, rgb_value, None] = None):
     """initialise la couleur de fond des figures"""
+    try:
+        rgb_valid(couleur)
+    except Exception as err:
+        print(f"{err} fill({couleur})")
+        raise
     c = rgb_color(couleur)
     if c is not None:
         processing.__fill_color = c
-        processing.__no_fill = False
+    processing.__no_fill = False
+
 
 def fill_mouse_on(couleur: any):
     """initialise la couleur de fond des figures quand la souris est dessus"""
     c = rgb_color(couleur)
     if c is not None:
         processing.__fill_color_mouse_on = c
+
+
 def noFill_mouse_on():
     processing.__fill_color_mouse_on = None
+
 
 def color(rouge: int, vert: int = None, bleu: int = None):
     if vert is None:
@@ -116,6 +145,11 @@ def stop() -> None:
     """ stop the loop like no_loop()"""
     noLoop()
 
+def rgb_valid(valeur:tuple):
+    if isinstance(valeur, tuple):
+        for v in valeur:
+            if v<0 or v>255:
+                raise RgbError("In rgb tuple each number must be in [0;255]")
 
 def rgb_color(valeur) -> [tuple, None]:
     """retourne un tuple de 4 éléments rgb + transparence à partir d"un tuple rgb, d'une chaine de caractères

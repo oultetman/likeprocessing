@@ -78,11 +78,20 @@ def symetrie_x(points: list) -> list:
         pts.append([pt[0], 2 * processing.__flip_axe_h - pt[1]])
     return pts
 
+def translation(points: list) -> list:
+    """execute une translation sur une liste de points"""
+    if processing.get_dx() == 0 and processing.get_dy() == 0:
+        return points
+    pts = []
+    for pt in points:
+        pts.append([pt[0]+processing.get_dx(),pt[1]+processing.get_dy()])
+    return pts
 
 def transformation(points: list) -> list:
     """excecute rotation and symmetry transformation
     on next drawing functions"""
-    pts = processing.rotation(points)
+    pts = processing.translation(points)
+    pts = processing.rotation(pts)
     pts = processing.symetrie_y(pts)
     pts = processing.symetrie_x(pts)
     return pts

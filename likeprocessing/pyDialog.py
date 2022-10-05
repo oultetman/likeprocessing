@@ -22,7 +22,7 @@ class Boite(pygame.Rect):
         self.couleurBord = kwargs.get('couleurBord', BLACK)
         self.couleurFond = kwargs.get('couleurFond', WHITE)
         self.largeurBord = kwargs.get('largeurBord', 1)
-        self.couleurFondDisabled = kwargs.get('couleurFond', affichage.rgb_color("grey"))
+        self.couleurFondDisabled = kwargs.get('couleurFondDisabled', affichage.rgb_color("grey"))
         self.couleurBordDisabled = kwargs.get('couleurFond', affichage.rgb_color("grey90"))
         self.image_rect: pygame.surface = kwargs.get('image', None)
         self.destroy = False
@@ -45,7 +45,7 @@ class Boite(pygame.Rect):
     def setY(self, value: int):
         self.y = value
 
-    def move(self,x:int,y:int):
+    def move(self, x: int, y: int):
         self.setX(x)
         self.setY(y)
 
@@ -62,7 +62,7 @@ class Boite(pygame.Rect):
                 r = pygame.Surface((self.width, self.height))
                 r.fill(couleur_fond)
             else:
-                r = pygame.Surface((self.width, self.height),pygame.SRCALPHA,32)
+                r = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
                 r = r.convert_alpha()
             Boite.ecran.blit(r, [self.Parent.left + self.left, self.Parent.top + self.top])
         else:
@@ -83,26 +83,31 @@ class Boite(pygame.Rect):
 
 
 class MultiLineText(Boite):
-    def __init__(self, parent, rect, texte, police='arial', taille=12, angle=0, **kwargs):
+    def __init__(self, parent, rect, texte, angle=0, **kwargs):
         if len(rect) == 2:
             rect = (rect[0], rect[1], 0, 0)
+        elif len(rect) == 3:
+            rect = (rect[0], rect[1], rect[2], 0)
         super().__init__(parent, rect, **kwargs)
         self._texte = texte.split("\n")
-        self.police = police
-        self.taille = taille
+        self.couleurBord = kwargs.get('couleurBord', "black")
         self.largeurBord = kwargs.get('largeurBord', 1)
-        self.couleurBord = kwargs.get('couleurBord', 1)
-        self._couleurPolice = kwargs.get('couleurPolice', BLACK)
+        self.couleurFond = kwargs.get('couleurFond', None)
+        self.police = kwargs.get('police', "arial")
+        self.taille = kwargs.get('size', 12)
+        self._couleurPolice = kwargs.get('couleurPolice', "black")
+        self.bold = kwargs.get('bold', None)
+        self.italic = kwargs.get('italic', None)
+        self.align_v = kwargs.get('align_v', "TOP").upper()
+        self.align_h = kwargs.get('align_h', "LEFT").upper()
         self.angle = angle
         self.image = self.imageTexte()
 
-    @property
-    def texte(self):
-        return self._texte
 
-    @texte.setter
-    def texte(self, text: str):
-        self._texte = text.split("\n")
+    def text(self, texte: [str, None] = None):
+        if texte is None:
+            return self._texte
+        self._texte = texte.split("\n")
         self.image = self.imageTexte()
 
     @property
@@ -115,7 +120,7 @@ class MultiLineText(Boite):
         self.image = self.imageTexte()
 
     def imageTexte(self):
-        rec_font = pygame.font.SysFont(self.police, self.taille)
+        rec_font = pygame.font.SysFont(self.police, self.taille, bold=self.bold, italic=self.italic)
         text_bitmap = []
         width = 0
         height = 0
@@ -124,40 +129,69 @@ class MultiLineText(Boite):
             r = text_bitmap[-1].get_rect()
             width = max(width, r.width)
             height = height + r.height
+        image = pygame.Surface((width, height),pygame.SRCALPHA,32)
+        y = 0
+        x=0
+        for l in text_bitmap:
+            if self.align_h == "LEFT":
+                x = 0
+            elif self.align_h == "CENTER":
+                x = (width - l.get_width()) // 2
+            elif self.align_h == "RIGHT":
+                x = - 2 + (width - l.get_width())
+            image.blit(l, (x, y))
+            y += l.get_height()
         if self.angle != 0:
-            text_bitmap = pygame.transform.rotate(text_bitmap, self.angle)
-        self.width = max(width, self.width)
-        self.height = max(height, self.height)
-        return text_bitmap
+            image = pygame.transform.rotate(image, self.angle)
+            width = image.get_width()
+            height = image.get_height()
+        self.width = max(width+4, self.width)
+        self.height = max(height+4, self.height)
+        return image
 
     def draw(self):
         # fonction qui permet l'affichage de texte à  l'ecran
         super().draw()
-        y = self.Parent.top + self.top
-        for i in self.image:
-            Boite.ecran.blit(i, [self.Parent.left + self.left, y])
-            y += i.get_rect().height
+        if self.align_h == "LEFT":
+            x = self.Parent.left + self.left + 2
+        elif self.align_h == "CENTER":
+            x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
+        elif self.align_h == "RIGHT":
+            x = self.Parent.left + self.left - 2 + (self.width - self.image.get_width())
+        if self.align_v == "TOP":
+            y = self.Parent.top + self.top + 2
+        elif self.align_v == "CENTER":
+            y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
+        elif self.align_v == "BOTTOM":
+            y = self.Parent.top + self.top - 2 + (self.height - self.image.get_height())
+        Boite.ecran.blit(self.imageTexte(), [x, y])
 
     def __str__(self):
-        return super().__str__() + " " + str(self.texte)
+        return super().__str__() + " " + str(self.text)
 
 
 class Label(Boite):
-    def __init__(self, parent, rect, texte: str, police='arial', taille=12, couleurPolice=BLACK,
-                 angle=0, **kwargs):
+    """affiche un texte sur une ligne dans une boite"""
+
+    def __init__(self, parent, rect, texte: str, angle=0, **kwargs):
         if len(rect) == 2:
             rect = (rect[0], rect[1], 0, 0)
+        elif len(rect) == 3:
+            rect = (rect[0], rect[1], rect[2], 0)
         couleurBord = kwargs.get('couleurBord', "black")
         largeurBord = kwargs.get('largeurBord', 0)
         couleurFond = kwargs.get('couleurFond', None)
+        kwargs["police"] = kwargs.get('police', "arial")
+        kwargs["size"] = kwargs.get('size', 12)
+        kwargs["couleurPolice"] = kwargs.get('couleurPolice', "black")
         self.bold = kwargs.get('bold', None)
         self.italic = kwargs.get('italic', None)
         self.align_v = kwargs.get('align_v', "TOP").upper()
         self.align_h = kwargs.get('align_h', "LEFT").upper()
         super().__init__(parent, rect, couleurBord=couleurBord, largeurBord=largeurBord, couleurFond=couleurFond)
         self._texte = texte
-        self.police = police
-        self.taille = taille
+        self.police = kwargs["police"]
+        self.taille = kwargs["size"]
         self.couleurPolice = kwargs.get('couleurPolice', BLACK)
         self.couleurPoliceEnabled = kwargs.get('couleurPolice', BLACK)
         self.couleurPoliceDisabled = (128, 128, 128)
@@ -182,13 +216,10 @@ class Label(Boite):
         self.width = value
         self.image = self.imageTexte()
 
-    @property
-    def texte(self):
-        return self._texte
-
-    @texte.setter
-    def texte(self, text: str):
-        self._texte = text
+    def text(self, texte: [str, None] = None):
+        if texte is None:
+            return self._texte
+        self._texte = texte
         self.image = self.imageTexte()
 
     def imageTexte(self):
@@ -206,6 +237,12 @@ class Label(Boite):
 
     def draw(self):
         # fonction qui permet l'affichage de texte à  l'ecran
+        if self.angle != 0:
+            img = pygame.transform.rotate(self.image, self.angle)
+            self.width = max(img.get_width(), self.width)
+            self.height = max(img.get_height(), self.height)
+        else:
+            img = self.image
         super().draw()
         if self.align_h == "LEFT":
             x = self.Parent.left + self.left + 2
@@ -219,13 +256,15 @@ class Label(Boite):
             y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
         elif self.align_v == "BOTTOM":
             y = self.Parent.top + self.top - 2 + (self.height - self.image.get_height())
-        Boite.ecran.blit(self.image, [x, y])
+        Boite.ecran.blit(img, [x, y])
 
     def __str__(self):
-        return super().__str__() + " " + str(self.texte)
+        return super().__str__() + " " + str(self.text)
 
 
 class TextEdit(Boite):
+    """permet de créer un texte sur plusieurs ligne"""
+
     def __init__(self, parent, rect, texte: str, **kwargs):
         kwargs["couleurBord"] = kwargs.get('couleurBord', affichage.rgb_color("black"))
         kwargs["largeurBord"] = kwargs.get('largeurBord', 1)
@@ -235,7 +274,7 @@ class TextEdit(Boite):
         nb_ligne = kwargs.get('nb_ligne', 10)
         ps = pygame.font.SysFont(kwargs["police"], kwargs["size"])
         h = ps.size("bg")[0]
-        rect = tuple(list(rect[:3])+[(4+h) * nb_ligne+4])
+        rect = tuple(list(rect[:3]) + [(4 + h) * nb_ligne + 4])
         if parent is None:
             processing.ihm.append(self)
         super().__init__(parent, rect, **kwargs)
@@ -246,10 +285,11 @@ class TextEdit(Boite):
         if self.nb_ligne > len(self.texte):
             self.texte += ["" for i in range(self.nb_ligne - len(self.texte))]
         self.lignes = [
-            LineEdit(self, (2, 2 + (4+h) * i, self.width - 4, (4+h)), self.texte[i], **kwargs,name = i) for i in range(self.nb_ligne)]
+            LineEdit(self, (2, 2 + (4 + h) * i, self.width - 4, (4 + h)), self.texte[i], **kwargs, name=i) for i in
+            range(self.nb_ligne)]
         self.decalage = 0
         self._focus = False
-        self.focus=False
+        self.focus = False
         self.mouseOn = False
 
         self.key_tempo = processing.Tempo(100)
@@ -306,7 +346,7 @@ class TextEdit(Boite):
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
-        click = processing.click
+        click = processing.__click
         if self.collidepoint(x, y):
             self.mouseOn = True
         else:
@@ -369,6 +409,7 @@ class TextEdit(Boite):
 
 
 class LineEdit(Boite):
+    """permet de créer un champs éditable sur une ligne"""
     LINE_EDIT_FOND = affichage.rgb_color("white")
     LINE_EDIT_FOND_DISABLED = affichage.rgb_color("grey")
     LINE_EDIT_BORD = affichage.rgb_color("black")
@@ -386,15 +427,18 @@ class LineEdit(Boite):
         name = kwargs.get('name', None)
         if parent is None:
             processing.ihm.append(self)
-        elif isinstance(parent,TextEdit):
+        elif isinstance(parent, TextEdit):
             kwargs['largeurBord'] = 0
         ps = pygame.font.SysFont(kwargs["police"], kwargs["size"])
         h = ps.size("bg")[0]
-        rect = tuple(list(rect[:3])+[h + 4])
+        rect = tuple(list(rect[:3]) + [h + 4])
         super().__init__(parent, rect, **kwargs)
         ft = pygame.font.SysFont(kwargs["police"], kwargs["size"])
         manager = pygame_textinput.TextInputManager(initial=texte)
-        self.texte: pygame_textinput.TextInputVisualizer = pygame_textinput.TextInputVisualizer(font_object=ft,manager=manager, font_color=kwargs["couleurPolice"])
+        self.texte: pygame_textinput.TextInputVisualizer = pygame_textinput.TextInputVisualizer(font_object=ft,
+                                                                                                manager=manager,
+                                                                                                font_color=kwargs[
+                                                                                                    "couleurPolice"])
         self.texte.input_string = texte
         self.texte.cursor_width = 2
         self._focus = False
@@ -452,7 +496,7 @@ class LineEdit(Boite):
     def scan_mouse(self):
         if self.is_disabled is False:
             x, y = processing.mouseXY()
-            click = processing.click
+            click = processing.__click
             if self.collidepoint(x, y):
                 self.mouseOn = True
             else:
@@ -466,7 +510,7 @@ class LineEdit(Boite):
                         self):
                     c += 1
                     # print(self.texte.font_object.size(self.texte.value[0:c])[0], x, c,self.x,self.parent)
-                self.texte.manager.cursor_pos = c-1
+                self.texte.manager.cursor_pos = c - 1
                 # *************************
                 if isinstance(self.parent, TextEdit):
                     self.parent.ligne_actuelle = self.name
@@ -474,8 +518,10 @@ class LineEdit(Boite):
         else:
             self.focus = False
 
-    def text(self):
-        return self.texte.value
+    def text(self, texte: [str, None] = None):
+        if texte is None:
+            return self.texte.value
+        self.set_text(texte)
 
     def set_text(self, texte: str):
         self.texte.value = texte
@@ -497,11 +543,17 @@ class Bouton(Boite):
             b = 2
         else:
             b = 1
+        if len(rect) == 2:
+            rect = (rect[0], rect[1], 0, 0)
+        elif len(rect) == 3:
+            rect = (rect[0], rect[1], rect[2], 0)
         super().__init__(parent, rect, **kwargs)
         self.fonction = kwargs.get("command", None)
         self.mouseOn = False
         self.mouseClick = False
-        self.texte = MultiLineText(parent, (2, 2), texte, **kwargs)
+        self.texte = MultiLineText(parent, (2, 2), texte, **kwargs,align_v="center",align_h="center")
+        self.width = max(self.width,self.texte.width+4)
+        self.height = max(self.height,self.texte.height+4)
         self.texte.left = self.left + (self.width - self.texte.width) // 2
         self.texte.top = self.top + (self.height - self.texte.height) // 2
 
@@ -512,6 +564,14 @@ class Bouton(Boite):
     def setY(self, value: int):
         self.y = value
         self.texte.top = self.top + (self.height - self.texte.height) // 2
+
+    def text(self, texte: [str, None] = None):
+        if texte is None:
+            return self.texte.text()
+        self.texte.text(texte)
+        self.width = max(self.width,self.texte.width+4)
+        self.height = max(self.height,self.texte.height+4)
+
 
     @property
     def parent(self):
@@ -556,7 +616,7 @@ class Bouton(Boite):
     def scan_mouse(self):
         if self.is_disabled is False:
             x, y = processing.mouseXY()
-            click = processing.click
+            click = processing.__click
             if self.collidepoint(x, y):
                 self.mouseOn = True
             else:
@@ -567,6 +627,9 @@ class Bouton(Boite):
                     self.fonction()
             elif click is True and self.mouseOn is True:
                 self.mouseClick = True
+
+    def __str__(self):
+        return "Bouton " + super().__str__() + " " + str(self.texte)
 
 
 class Dialog(Boite):
@@ -640,11 +703,11 @@ class Dialog(Boite):
 
     @property
     def title(self):
-        return self.objet['title'].texte
+        return self.objet['title'].text
 
     @title.setter
     def title(self, texte: str):
-        self.objet["title"].texte = str(texte)
+        self.objet["title"].text = str(texte)
 
     def addObjet(self, objet, nom: str = None):
         if type(objet) == list:
@@ -687,7 +750,7 @@ class Dialog(Boite):
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
-        click = processing.click
+        click = processing.__click
         if self.visible and self.focus:
             if click:
                 self.lostFocus()
@@ -998,7 +1061,7 @@ class GroupeBoite(list):
             for o in self:
                 if isinstance(o, Dialog):
                     if o.collidepoint(x, y):
-                        if processing.click:
+                        if processing.__click:
                             if self.obj_focus is None or not self.obj_focus.collidepoint(x, y):
                                 self.take_focus(o)
                         o.scan_mouse()

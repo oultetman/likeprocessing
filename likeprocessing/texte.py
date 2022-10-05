@@ -36,12 +36,11 @@ def text(texte: str, x, y, largeur=0, hauteur=0):
     if processing.__rect_center_mode:
         if largeur == 0 and hauteur == 0:
             ps = pygame.font.SysFont(police, size)
-            largeur,hauteur = ps.size(texte)
-            largeur+=4
-            hauteur+=4
+            largeur, hauteur = ps.size(texte)
+            largeur += 4
+            hauteur += 4
         x -= largeur / 2
         y -= hauteur / 2
-
 
     if textStyle() == "BOLD":
         b = True
@@ -60,7 +59,7 @@ def text(texte: str, x, y, largeur=0, hauteur=0):
         couleur = None
     else:
         couleur = processing.get_fill_color()
-    t = Label(None, (x + processing.__dx, y + processing.__dy, largeur, hauteur), texte, police, size,
+    t = Label(None, (x + processing.__dx, y + processing.__dy, largeur, hauteur), texte, police=police, size=size,
               couleurFond=couleur,
               couleurBord=processing.get_border_color(), largeurBord=processing.get_border_width(), bold=b, italic=i,
               align_h=h, align_v=v)

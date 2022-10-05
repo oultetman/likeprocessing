@@ -5,38 +5,47 @@ import likeprocessing.trigo as trigo
 import pygame
 
 
-def in_polygone(x, y, points: list)->bool:
+def in_polygone(x, y, points: list) -> bool:
     """retourne True si le point (x,y) est dans le polygone"""
     segment = []
-    for i in range(0,len(points)-1):
-        if (points[i][0]>=x or points[i+1][0]>=x) and (points[i][1]<y<points[i+1][1] or points[i][1]>y>points[i+1][1]):
-            segment.append((points[i],points[i+1]))
-    if (points[0][0]>=x or points[-1][0]>=x) and (points[0][1]<y<points[-1][1] or points[0][1]>y>points[-1][1]):
-        segment.append((points[0],points[-1]))
-    if len(segment)%2 ==1:
+    for i in range(0, len(points) - 1):
+        if (points[i][0] >= x or points[i + 1][0] >= x) and (
+                points[i][1] < y < points[i + 1][1] or points[i][1] > y > points[i + 1][1]):
+            segment.append((points[i], points[i + 1]))
+    if (points[0][0] >= x or points[-1][0] >= x) and (
+            points[0][1] < y < points[-1][1] or points[0][1] > y > points[-1][1]):
+        segment.append((points[0], points[-1]))
+    if len(segment) % 2 == 1:
         return True
     else:
         nb = 0
         for s in segment:
-            if (s[1][0]-s[0][0])!=0:
-                a = (s[1][1]-s[0][1])/(s[1][0]-s[0][0])
+            if (s[1][0] - s[0][0]) != 0:
+                a = (s[1][1] - s[0][1]) / (s[1][0] - s[0][0])
                 b = s[1][1] - a * s[1][0]
-                if (y - b)/a>=x:
-                    nb+=1
+                if (y - b) / a >= x:
+                    nb += 1
             else:
-                nb+=1
-        return nb%2==1
+                nb += 1
+        return nb % 2 == 1
 
 
-def in_ellipse(x,y,xe,ye,largeur,hauteur)->bool:
+def in_line(x, y, x1, y1, x2, y2) -> bool:
+    points = [(x1 - 1, y1 - 1), (x1 + 1, y1 + 1), (x2 + 1, y2 + 1), (x2 - 1, y2 - 1)]
+    return in_polygone(x, y, points)
+
+
+def in_ellipse(x, y, xe, ye, largeur, hauteur) -> bool:
     """retourne True si le point (x,y) est dans l'ellipse"""
-    angle = math.atan2(y-ye,x-xe)
-    r = math.sqrt((largeur*math.cos(angle)/2)**2 + (hauteur*math.sin(angle)/2)**2)
-    return dist(x,y,xe,ye)<r*0.95
+    angle = math.atan2(y - ye, x - xe)
+    r = math.sqrt((largeur * math.cos(angle) / 2) ** 2 + (hauteur * math.sin(angle) / 2) ** 2)
+    return dist(x, y, xe, ye) < r * 0.95
 
-def in_circle(x,y,xc,yc,diametre)->bool:
+
+def in_circle(x, y, xc, yc, diametre) -> bool:
     """retourne True si le point (x,y) est dans le cercle"""
-    return dist(x,y,xc,yc)<diametre/2
+    return dist(x, y, xc, yc) < diametre / 2
+
 
 def rectMode(corners_center: str = "") -> str:
     """change center mode 'CORNERS' or 'CENTER' and return rectMode mode"""
@@ -120,10 +129,10 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
     if processing.__rect_center_mode:
         x -= largeur / 2
         y -= hauteur / 2
-    points = [[x + processing.__dx, y + processing.__dy],
-              [x + processing.__dx + largeur, y + processing.__dy],
-              [x + processing.__dx + largeur, y + processing.__dy + hauteur],
-              [x + processing.__dx, y + processing.__dy + hauteur]]
+    points = [[x, y],
+              [x + largeur, y],
+              [x + largeur, y + hauteur],
+              [x, y + hauteur]]
 
     # if image is None:
     polygone(points)
@@ -174,7 +183,10 @@ def line(x1: int, y1: int, x2: int, y2: int):
     """Trace un segment reliant les deux points de coordonnées (x1, y1) et (x2, y2)."""
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)]
     points = processing.transformation(points)
-    pygame.draw.line(processing.screen, processing.__border_color, *points, processing.__border_width)
+    if processing.__fill_color_mouse_on is not None and in_line(*processing.mouseXY(), x1, y1, x2, y2):
+        pygame.draw.line(processing.screen, processing.__fill_color_mouse_on, *points, processing.__border_width)
+    else:
+        pygame.draw.line(processing.screen, processing.__border_color, *points, processing.__border_width)
 
 
 def ellipseMode(corners_center: str = ""):
@@ -199,12 +211,13 @@ def get_ellipse_center_mode() -> str:
 def ellipse(x: int, y: int, largeur: int, hauteur: int):
     """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
     et la hauteur prennent les valeurs fixées."""
-    if processing.get_rotation_rad() == 0:
+    if processing.get_rotation_rad() == 0 and processing.__flip_axe_h is None and processing.__flip_axe_v is None:
         if processing.__ellipse_center_mode:
             x -= largeur / 2
             y -= hauteur / 2
         if processing.__no_fill == False:
-            if processing.__fill_color_mouse_on is not None and in_ellipse(*processing.mouseXY(),x+largeur/2,y+hauteur/2,largeur,hauteur):
+            if processing.__fill_color_mouse_on is not None and in_ellipse(*processing.mouseXY(), x + largeur / 2,
+                                                                           y + hauteur / 2, largeur, hauteur):
                 pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
                                     (x + processing.__dx, y + processing.__dy, largeur, hauteur),
                                     0)
@@ -225,20 +238,26 @@ def circle(x: int, y: int, diametre: int):
     """Trace un cercle dont le centre a pour coordonnées (x, y) et dont le diamètre prend la valeur fixée.
     Idem ellipse((x, y, diametre, diametre)"""
 
-    points = [(x + processing.__dx, y + processing.__dy)]
+    points = [(x,y)]
     points = processing.transformation(points)
     x, y = points[0]
+    if processing.__flip_axe_h is not None :
+        y-=diametre
+    if processing.__flip_axe_v is not None :
+        x-=diametre
     if processing.__ellipse_center_mode:
         x -= diametre / 2
         y -= diametre / 2
-    if processing.__fill_color_mouse_on is not None and in_circle(*processing.mouseXY(),x+diametre/2,y+diametre/2,diametre):
-        pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
-                            (x, y, diametre, diametre),
-                            0)
-    else:
-        pygame.draw.ellipse(processing.screen, processing.__fill_color,
-                            (x, y, diametre, diametre),
-                            0)
+    if processing.__no_fill is False:
+        if processing.__fill_color_mouse_on is not None and in_circle(*processing.mouseXY(), x + diametre / 2,
+                                                                      y + diametre / 2, diametre):
+            pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
+                                (x, y, diametre, diametre),
+                                0)
+        else:
+            pygame.draw.ellipse(processing.screen, processing.__fill_color,
+                                (x, y, diametre, diametre),
+                                0)
     if processing.__border_width > 0:
         pygame.draw.ellipse(processing.screen, processing.__border_color,
                             (x, y, diametre, diametre),
@@ -247,16 +266,13 @@ def circle(x: int, y: int, diametre: int):
 
 def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int):
     """Trace un triangle dont les trois sommets ont pour coordonnées (x1, y1), (x2, y2), et (x3, y3)."""
-    points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
-        , (x3 + processing.__dx, y3 + processing.__dy)]
+    points = [(x1, y1), (x2, y2), (x3, y3)]
     polygone(points)
 
 
 def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int):
     """Trace un quadrilatère dont les quatre sommets ont pour coordonnées (x1, y1), (x2, y2), (x3, y3) et (x4, y4)."""
-    points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)
-        , (x3 + processing.__dx, y3 + processing.__dy),
-              (x4 + processing.__dx, y4 + processing.__dy)]
+    points = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
     polygone(points)
 
 
@@ -318,16 +334,16 @@ def arc(x: int, y: int, largeur: int, hauteur: int, angleDebut: float = None, an
 
     # calcul des points de l'arc
     if pie:
-        points = [(x + processing.__dx, y + processing.__dy)]
+        points = [(x, y)]
     if angleDebut > angleFin:
         angleFin += 2 * math.pi
     angle = angleDebut
     while angle < angleFin - 0.1:
-        points.append((largeur * math.cos(angle) / 2 + processing.__dx + x,
-                       -hauteur * math.sin(angle) / 2 + processing.__dy + y))
+        points.append((largeur * math.cos(angle) / 2 + x,
+                       -hauteur * math.sin(angle) / 2 + y))
         angle += 0.1
-    points.append((largeur * math.cos(angleFin) / 2 + processing.__dx + x,
-                   -hauteur * math.sin(angleFin) / 2 + processing.__dy + y))
+    points.append((largeur * math.cos(angleFin) / 2 + x,
+                   -hauteur * math.sin(angleFin) / 2 + y))
     polygone(points)
 
 
