@@ -31,8 +31,11 @@ def in_polygone(x, y, points: list) -> bool:
 
 
 def in_line(x, y, x1, y1, x2, y2) -> bool:
-    points = [(x1 - 1, y1 - 1), (x1 + 1, y1 + 1), (x2 + 1, y2 + 1), (x2 - 1, y2 - 1)]
-    return in_polygone(x, y, points)
+    d1 = dist(x, y, x1, y1)
+    d2 = dist(x, y, x2, y2)
+    d = dist(x1, y1, x2, y2)
+
+    return d * 1.001 > d1 + d2
 
 
 def in_ellipse(x, y, xe, ye, largeur, hauteur) -> bool:
@@ -61,7 +64,7 @@ def rectMode(corners_center: str = "") -> str:
     return corners_center
 
 
-def rect1(x: int, y: int, largeur: int, hauteur: int, **kwarsg):
+def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     """Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur.
     Si rectMode('center') x et y sont les coordonnées du centre du rectangle.
     Si rectMode('corners') x,y sont les coordonnées du coin haut gauche.
@@ -72,61 +75,16 @@ def rect1(x: int, y: int, largeur: int, hauteur: int, **kwarsg):
     allign_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
      """
 
-    if processing.__rect_center_mode:
-        x -= largeur / 2
-        y -= hauteur / 2
-    image = kwarsg.get("image", None)
-    allign_h = kwarsg.get("allign_h", "left")
-    allign_v = kwarsg.get("allign_v", "top")
-    if image is None:
-        if processing.__no_fill is False:
-            pygame.draw.rect(processing.screen, processing.__fill_color,
-                             (x + processing.__dx, y + processing.__dy, largeur, hauteur), 0)
-    else:
-        dx = 0  # left
-        dy = 0  # top
-        if hauteur == 0:
-            hauteur = image.get_height()
-        if largeur == 0:
-            largeur = image.get_width()
-        if allign_h == "left":
-            dx = 0
-        elif allign_h == "right":
-            dx = max(0, largeur - image.get_width())
-        elif allign_h == "center":
-            dx = max(0, (largeur - image.get_width()) // 2)
-        if allign_v == "center":
-            dy = max(0, (hauteur - image.get_height()) // 2)
-        elif allign_v == "bottom":
-            dy = max(0, hauteur - image.get_height())
-        processing.screen.blit(image,
-                               (x + dx, y + dy),
-                               (0, 0, largeur, hauteur))
-    if processing.__border_width > 0:
-        pygame.draw.rect(processing.screen, processing.__border_color,
-                         (x + processing.__dx, y + processing.__dy, largeur, hauteur), processing.__border_width)
-
-
-def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
-    """Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur.
-    Si rectMode('center') x et y sont les coordonnées du centre du rectangle.
-    Si rectMode('corners') x,y sont les coordonnées du coin haut gauche.
-    Le rectangle est rempli par la couleur définie par fill(couleur).
-    Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée
-    aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées).
-    largeur et/ou hauteur seront alors celle de l'image. Les paramètres allign_h (left, center et right) et
-    allign_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
-     """
-
-    image: pygame.surface = kwarsg.get("image", None)
-    allign_h = kwarsg.get("allign_h", "left")
-    allign_v = kwarsg.get("allign_v", "top")
+    image: pygame.surface = kwargs.get("image", None)
+    allign_h = kwargs.get("allign_h", "left")
+    allign_v = kwargs.get("allign_v", "top")
+    rectMode = kwargs.get("rectMode", processing.__rect_center_mode)
     if image is not None:
         if hauteur == 0:
             hauteur = image.get_height()
         if largeur == 0:
             largeur = image.get_width()
-    if processing.__rect_center_mode:
+    if rectMode:
         x -= largeur / 2
         y -= hauteur / 2
     points = [[x, y],
@@ -135,7 +93,7 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
               [x, y + hauteur]]
 
     # if image is None:
-    polygone(points)
+    polygone(points, **kwargs)
     if image is not None:
 
         dx = 0  # left
@@ -168,19 +126,22 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwarsg):
             processing.not_filled_polygone(points)
 
 
-def square(x: int, y: int, largeur: int):
-    # pygame.draw.rect(processing.screen, processing.__fill_color,
-    #                  (x + processing.__dx, y + processing.__dy, largeur, largeur), processing.__border_width)
+def square(x: int, y: int, largeur: int, **kwargs):
     processing.rect(x, y, largeur, largeur)
 
 
 def point(x: int, y: int):
-    """Trace un point de coordonnées(x, y). carré de 2x2 pixel"""
-    square(x, y, 2)
+    """Trace un point de coordonnées(x, y). carré de 3x3 pixel.
+    x et y sont les coordonnées du centre quelque soit la valeur de rectMode """
+    if not processing.__rect_center_mode:
+        x -= 1
+        y -= 1
+    square(x, y, 3)
 
 
-def line(x1: int, y1: int, x2: int, y2: int):
+def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
     """Trace un segment reliant les deux points de coordonnées (x1, y1) et (x2, y2)."""
+
     points = [(x1 + processing.__dx, y1 + processing.__dy), (x2 + processing.__dx, y2 + processing.__dy)]
     points = processing.transformation(points)
     if processing.__fill_color_mouse_on is not None and in_line(*processing.mouseXY(), x1, y1, x2, y2):
@@ -203,99 +164,134 @@ def ellipseMode(corners_center: str = ""):
     return corners_center
 
 
-def get_ellipse_center_mode() -> str:
+def get_ellipse_center_mode() -> bool:
     """retourne ellipse_center_mode"""
     return processing.__ellipse_center_mode
 
 
-def ellipse(x: int, y: int, largeur: int, hauteur: int):
+def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
     """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
     et la hauteur prennent les valeurs fixées."""
+    ellipse_mode = kwargs.get("ellipse_mode", processing.__ellipse_center_mode)
+    fill = kwargs.get("fill", processing.get_fill_color())
+    no_fill = kwargs.get("no_fill", processing.__no_fill)
+    stroke = kwargs.get("stroke", processing.__border_color)
+    stroke_weight = kwargs.get("stroke_weight", processing.__border_width)
+    fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
+    no_stoke = kwargs.get("no_stroke", False)
+    if no_stoke is True:
+        stroke_weight = 0
+    if isinstance(fill, str):
+        fill = processing.rgb_color(fill)
+    if isinstance(stroke, str):
+        stroke = processing.rgb_color(stroke)
     if processing.get_rotation_rad() == 0 and processing.__flip_axe_h is None and processing.__flip_axe_v is None:
-        if processing.__ellipse_center_mode:
+        if ellipse_mode:
             x -= largeur / 2
             y -= hauteur / 2
-        if processing.__no_fill == False:
-            if processing.__fill_color_mouse_on is not None and in_ellipse(*processing.mouseXY(), x + largeur / 2,
-                                                                           y + hauteur / 2, largeur, hauteur):
-                pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
+        if no_fill == False:
+            if fill_mouse_on is not None and in_ellipse(*processing.mouseXY(), x + largeur / 2,
+                                                        y + hauteur / 2, largeur, hauteur):
+                pygame.draw.ellipse(processing.screen, fill_mouse_on,
                                     (x + processing.__dx, y + processing.__dy, largeur, hauteur),
                                     0)
             else:
-                pygame.draw.ellipse(processing.screen, processing.__fill_color,
+                pygame.draw.ellipse(processing.screen, fill,
                                     (x + processing.__dx, y + processing.__dy, largeur, hauteur),
                                     0)
 
-        if processing.__border_width > 0:
-            pygame.draw.ellipse(processing.screen, processing.__border_color,
+        if stroke_weight > 0:
+            pygame.draw.ellipse(processing.screen, stroke,
                                 (x + processing.__dx, y + processing.__dy, largeur, hauteur),
-                                processing.__border_width)
+                                stroke_weight)
     else:
-        arc(x, y, largeur, hauteur, pie=False)
+        arc(x, y, largeur, hauteur, pie=False, **kwargs)
 
 
-def circle(x: int, y: int, diametre: int):
+def circle(x: int, y: int, diametre: int, **kwargs):
     """Trace un cercle dont le centre a pour coordonnées (x, y) et dont le diamètre prend la valeur fixée.
     Idem ellipse((x, y, diametre, diametre)"""
-
-    points = [(x,y)]
+    ellipse_mode = kwargs.get("ellipse_mode", processing.__ellipse_center_mode)
+    fill = kwargs.get("fill", processing.get_fill_color())
+    no_fill = kwargs.get("no_fill", processing.__no_fill)
+    stroke = kwargs.get("stroke", processing.__border_color)
+    stroke_weight = kwargs.get("stroke_weight", processing.__border_width)
+    fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
+    no_stoke = kwargs.get("no_stroke", False)
+    if no_stoke is True:
+        stroke_weight = 0
+    if isinstance(fill, str):
+        fill = processing.rgb_color(fill)
+    if isinstance(stroke, str):
+        stroke = processing.rgb_color(stroke)
+    points = [(x, y)]
     points = processing.transformation(points)
     x, y = points[0]
-    if processing.__flip_axe_h is not None :
-        y-=diametre
-    if processing.__flip_axe_v is not None :
-        x-=diametre
-    if processing.__ellipse_center_mode:
+    if processing.__flip_axe_h is not None:
+        y -= diametre
+    if processing.__flip_axe_v is not None:
+        x -= diametre
+    if ellipse_mode:
         x -= diametre / 2
         y -= diametre / 2
-    if processing.__no_fill is False:
-        if processing.__fill_color_mouse_on is not None and in_circle(*processing.mouseXY(), x + diametre / 2,
-                                                                      y + diametre / 2, diametre):
-            pygame.draw.ellipse(processing.screen, processing.__fill_color_mouse_on,
+    if no_fill is False:
+        if fill_mouse_on is not None and in_circle(*processing.mouseXY(), x + diametre / 2,
+                                                   y + diametre / 2, diametre):
+            pygame.draw.ellipse(processing.screen, fill_mouse_on,
                                 (x, y, diametre, diametre),
                                 0)
         else:
-            pygame.draw.ellipse(processing.screen, processing.__fill_color,
+            pygame.draw.ellipse(processing.screen, fill,
                                 (x, y, diametre, diametre),
                                 0)
-    if processing.__border_width > 0:
-        pygame.draw.ellipse(processing.screen, processing.__border_color,
+    if stroke_weight > 0:
+        pygame.draw.ellipse(processing.screen, stroke,
                             (x, y, diametre, diametre),
-                            processing.__border_width)
+                            stroke_weight)
 
 
-def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int):
+def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, **kwargs):
     """Trace un triangle dont les trois sommets ont pour coordonnées (x1, y1), (x2, y2), et (x3, y3)."""
     points = [(x1, y1), (x2, y2), (x3, y3)]
-    polygone(points)
+    polygone(points, **kwargs)
 
 
-def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int):
+def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int, **kwargs):
     """Trace un quadrilatère dont les quatre sommets ont pour coordonnées (x1, y1), (x2, y2), (x3, y3) et (x4, y4)."""
     points = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
-    polygone(points)
+    polygone(points, **kwargs)
 
 
-def polygone(points: list):
+def polygone(points: list, **kwargs):
     """Trace un polygone à partie d'une liste de points"""
     points = processing.transformation(points)
-    if processing.__no_fill is True:
-        pygame.draw.polygon(processing.screen, processing.__border_color,
-                            points, width=processing.__border_width)
+    fill = kwargs.get("fill", processing.get_fill_color())
+    no_fill = kwargs.get("no_fill", processing.__no_fill)
+    stroke = kwargs.get("stroke", processing.__border_color)
+    stroke_weight = kwargs.get("stroke_weight", processing.__border_width)
+    fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
+    no_stoke = kwargs.get("no_stroke", False)
+    if no_stoke is True:
+        stroke_weight = 0
+    if isinstance(fill, str):
+        fill = processing.rgb_color(fill)
+    if no_fill is True:
+        pygame.draw.polygon(processing.screen, stroke,
+                            points, width=stroke_weight)
     else:
         if processing.__fill_color_mouse_on is None:
-            pygame.draw.polygon(processing.screen, processing.__fill_color,
+            pygame.draw.polygon(processing.screen, fill,
                                 points)
         else:
             if processing.in_polygone(*processing.mouseXY(), points):
-                pygame.draw.polygon(processing.screen, processing.__fill_color_mouse_on,
+                pygame.draw.polygon(processing.screen, fill_mouse_on,
                                     points)
             else:
-                pygame.draw.polygon(processing.screen, processing.__fill_color,
+                pygame.draw.polygon(processing.screen, fill,
                                     points)
-        if processing.__border_width != 0:
-            pygame.draw.polygon(processing.screen, processing.__border_color,
-                                points, width=processing.__border_width)
+        if stroke_weight != 0:
+            pygame.draw.polygon(processing.screen, stroke,
+                                points, width=stroke_weight)
 
 
 def not_filled_polygone(points: list) -> None:
@@ -314,37 +310,38 @@ def k_line(points: list) -> None:
              points[i + 1][1] + processing.__dy)
 
 
-def arc(x: int, y: int, largeur: int, hauteur: int, angleDebut: float = None, angleFin: float = None, **kwargs):
+def arc(x: int, y: int, largeur: int, hauteur: int, angle_debut_degre: float = None, angle_fin_degre: float = None, **kwargs):
     """Créer une portion d'ellipse type part de tarte qui pourra être rempli entre les points repérés par
     les angles angleDébut et angleFin. x et y sont les coordonnées du centre du cercle."""
     pie = kwargs.get("pie", True)
+    ellipse_mode = kwargs.get("ellipse_mode", processing.__ellipse_center_mode)
     # recalcule de x et y si x,y centre de l'ellipse
-    if not processing.__ellipse_center_mode:
+    if not ellipse_mode:
         x += largeur / 2
         y += hauteur / 2
 
     # conversion des angle en radians
-    if angleDebut is None:
-        angleDebut = 0
-        angleFin = 2 * processing.PI
+    if angle_debut_degre is None:
+        angle_debut_degre = 0
+        angle_fin_degre = 2 * processing.PI
     else:
-        angleDebut = processing.radians(angleDebut)
-        angleFin = processing.radians(angleFin)
+        angle_debut_degre = processing.radians(angle_debut_degre)
+        angle_fin_degre = processing.radians(angle_fin_degre)
     points = []
 
     # calcul des points de l'arc
     if pie:
         points = [(x, y)]
-    if angleDebut > angleFin:
-        angleFin += 2 * math.pi
-    angle = angleDebut
-    while angle < angleFin - 0.1:
+    if angle_debut_degre > angle_fin_degre:
+        angle_fin_degre += 2 * math.pi
+    angle = angle_debut_degre
+    while angle < angle_fin_degre - 0.1:
         points.append((largeur * math.cos(angle) / 2 + x,
                        -hauteur * math.sin(angle) / 2 + y))
         angle += 0.1
-    points.append((largeur * math.cos(angleFin) / 2 + x,
-                   -hauteur * math.sin(angleFin) / 2 + y))
-    polygone(points)
+    points.append((largeur * math.cos(angle_fin_degre) / 2 + x,
+                   -hauteur * math.sin(angle_fin_degre) / 2 + y))
+    polygone(points, **kwargs)
 
 
 def circle_arc(x: int, y: int, diametre: int, angleDebut: float, angleFin: float, **kwargs):

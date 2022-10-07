@@ -346,7 +346,7 @@ class TextEdit(Boite):
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
-        click = processing.__click
+        click = processing.mouse_click()
         if self.collidepoint(x, y):
             self.mouseOn = True
         else:
@@ -496,7 +496,7 @@ class LineEdit(Boite):
     def scan_mouse(self):
         if self.is_disabled is False:
             x, y = processing.mouseXY()
-            click = processing.__click
+            click = processing.mouse_click()
             if self.collidepoint(x, y):
                 self.mouseOn = True
             else:
@@ -616,7 +616,7 @@ class Bouton(Boite):
     def scan_mouse(self):
         if self.is_disabled is False:
             x, y = processing.mouseXY()
-            click = processing.__click
+            click = processing.mouse_click()
             if self.collidepoint(x, y):
                 self.mouseOn = True
             else:
@@ -750,7 +750,7 @@ class Dialog(Boite):
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
-        click = processing.__click
+        click = processing.mouse_click()
         if self.visible and self.focus:
             if click:
                 self.lostFocus()
@@ -1061,7 +1061,7 @@ class GroupeBoite(list):
             for o in self:
                 if isinstance(o, Dialog):
                     if o.collidepoint(x, y):
-                        if processing.__click:
+                        if processing.mouse_click():
                             if self.obj_focus is None or not self.obj_focus.collidepoint(x, y):
                                 self.take_focus(o)
                         o.scan_mouse()

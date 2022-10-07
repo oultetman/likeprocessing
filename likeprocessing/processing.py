@@ -191,10 +191,15 @@ def mouse_button_pressed():
     return -1
 
 def mouse_click_up():
+    """return True when the mouse button move down to up for one loop only """
     return processing.__click_up
 
 def mouse_click_down():
+    """return True when the mouse button move up to down for one loop only """
     return processing.__click_down
+
+def mouse_click():
+    return processing.__click
 
 def redraw():
     """force le redessin de l'écran"""

@@ -12,6 +12,9 @@ class Tempo:
         self.depart = processing.frameCount()
         self.duree_ms = duree_ms
 
+    def reset(self):
+        self.depart = processing.frameCount()
+
     def fin(self) -> bool:
         if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
             self.depart = processing.frameCount()
