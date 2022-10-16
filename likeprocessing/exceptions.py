@@ -1,0 +1,2 @@
+class RgbError(Exception):
+    pass

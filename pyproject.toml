@@ -1,13 +1,15 @@
 [tool.poetry]
 name = "likeprocessing"
-version = "0.1.1"
+version = "0.1.5.9.2"
 description = "Like processing library with pygame"
 authors = ["Pierre Lemaitre <oultetman@sfr.fr>"]
+readme = "likeprocessing/README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 pygame = "^2.1.2"
-multipledispatch = "^0.6.0"
+pygame_textinput ="^1.0.1"
+
 
 [tool.poetry.dev-dependencies]
 
