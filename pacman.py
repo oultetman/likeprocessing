@@ -2,7 +2,7 @@ import pygame
 
 from likeprocessing.processing import *
 
-x = -200
+__print_x = -200
 t = Tempo(100)
 angle = 0
 vitesse = 2
@@ -19,7 +19,7 @@ def setup():
 
 
 def compute():
-    global x, angle, sens, flip
+    global __print_x, angle, sens, flip
     x += sens * vitesse
     # if keyIsPressed():
     #     if keys()[K_UP]:

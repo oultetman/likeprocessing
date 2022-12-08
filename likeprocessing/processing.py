@@ -1,5 +1,8 @@
+import pygame
+
 from likeprocessing.pyDialog import *
 import math
+
 HALF_PI = math.pi / 2
 PI = math.pi
 QUARTER_PI = math.pi / 4
@@ -7,9 +10,11 @@ TWO_PI = math.pi * 2
 pmouseX, pmouseY = 0, 0
 RADIANS = 1
 DEGREES = 2 * math.pi / 180
+debug = False
 __text_style = "NORMAL"
 __font = 'arial'
 __font_size = 12
+__font_color = "black"
 __couleur_bord_cadre_texte = "black"
 __text_align_h = "LEFT"
 __text_align_v = "TOP"
@@ -41,15 +46,21 @@ var_globales = {}
 __click = False
 __click_up = False
 __click_down = False
+__mouse_wheel = 0
 __frameCount = 0
 objets = []
 aliens = None
-screen = pygame.display.set_mode((300, 200))
+screen = pygame.display.set_mode((300, 200), pygame.RESIZABLE)
 Boite.init(screen)
 __rotation = 0
-__axis = None
+__axis = (0,0)
 __flip_axe_v = None
 __flip_axe_h = None
+__print_x = 5
+__print_y = 5
+__print_ligne = [25]
+__scale = 1
+__resizable = 0
 ihm = []
 from random import randint
 from likeprocessing.affichage import *
@@ -59,7 +70,14 @@ from likeprocessing.formes import *
 from likeprocessing.tempos import Tempo
 from likeprocessing.images import *
 from likeprocessing.texte import *
+from likeprocessing.print_vars import print_var
 
+def set_debug(valeur):
+    processing.debug = valeur
+
+def debuger():
+    if processing.debug:
+        print("debug")
 
 def get_font():
     return __font
@@ -85,12 +103,6 @@ def random(mini, maxi=None):
         maxi = mini
         mini = 0
     return randint(mini, maxi - 1)
-
-
-def strokeWeight(epaiseur: int):
-    """détermine la largeur du trait"""
-    global __border_width
-    __border_width = epaiseur
 
 
 def mouseX():
@@ -121,12 +133,18 @@ def height():
 def size(largeur: int, hauteur: int):
     """initialise les dimensions de l'écran"""
     processing.__width, processing.__height = largeur, hauteur
-    processing.screen = pygame.display.set_mode((largeur, hauteur))
+    processing.screen = pygame.display.set_mode((largeur, hauteur),processing.__resizable)
     pygame.display.set_caption(__title)
 
+def resizable_screen(resizable:bool=True):
+    if resizable:
+        processing.__resizable = pygame.RESIZABLE
+    else:
+        processing.__resizable = 0
 
-def createCanvas(largeur: int, hauteur: int):
+def createCanvas(largeur: int, hauteur: int, resizable:bool = False):
     """creer une fenêtre de taille largeur*hauteur"""
+    resizable_screen(resizable)
     size(largeur, hauteur)
 
 
@@ -178,7 +196,7 @@ def frameCount():
 
 def mouseIsPressed():
     """retourne True si une touche de la souris est appuyée"""
-    return __click is True
+    return __click
 
 
 def mouse_button_pressed():
@@ -190,23 +208,35 @@ def mouse_button_pressed():
             return i
     return -1
 
+
 def mouse_click_up():
     """return True when the mouse button move down to up for one loop only """
     return processing.__click_up
+
 
 def mouse_click_down():
     """return True when the mouse button move up to down for one loop only """
     return processing.__click_down
 
+
 def mouse_click():
+    """return True if mouse button is down"""
     return processing.__click
+
+
+def mouse_wheel_state():
+    """return 1 if wheel turn up -1 if wheel turn down and 0 if not turn"""
+    return processing.__mouse_wheel
+
 
 def redraw():
     """force le redessin de l'écran"""
     pygame.display.update()
 
-def events()->list:
+
+def events() -> list:
     return processing.__events
+
 
 def quitter(value=None):
     global __quitter
@@ -218,7 +248,7 @@ def quitter(value=None):
 
 def run(globales):
     global __key_pressed, __click, __click_down, __click_up, keys, __quitter, var_globales, __frameCount, clock, secondes
-    global __tempo_seconde, __tempo_centieme, centiemes, __events
+    global __tempo_seconde, __tempo_centieme, centiemes, __events,__mouse_wheel
     successes, failures = pygame.init()
     print("{0} successes and {1} failures".format(successes, failures))
     clock = pygame.time.Clock()
@@ -245,6 +275,10 @@ def run(globales):
             elif event.type == pygame.MOUSEBUTTONUP:
                 __click = False
                 __click_up = True
+            elif event.type == MOUSEWHEEL:
+                __mouse_wheel = event.y
+            elif event.type == pygame.VIDEORESIZE:
+                processing.__width,processing.__height = event.w, event.h
 
         if globales.get('scan_event'):
             globales['scan_event']()
@@ -263,10 +297,12 @@ def run(globales):
         __frameCount += 1
         __click_down = False
         __click_up = False
+        __mouse_wheel = 0
+
 
 def set_axis(axe: tuple):
     """initialise la valeur de l''axe de rotation"""
-    if isinstance(axe,tuple) and len(axe)==2:
+    if len(axe) == 2:
         processing.__axis = axe
     else:
         raise TypeError("axe is tuple and his length must be equal 2")
@@ -283,9 +319,20 @@ def set_font_size(taille):
     __font_size = taille
 
 
+def set_font_color(color):
+    """initialise la taille courante du texte"""
+    global __font_size
+    __font_size = color
+
+
 def get_font_size():
     """retourne la taille courante du texte"""
     return __font_size
+
+
+def get_font_color():
+    """retourne la couleur courante du texte"""
+    return __font_color
 
 
 def get_couleur_bord_cadre_texte():
@@ -348,37 +395,44 @@ def get_flip_axe_h() -> [int, float]:
     """retourne l'axe de symétrie horizontale"""
     return processing.__flip_axe_h
 
-def set_dx(translation_absolue_x: [int,float]):
+
+def set_dx(translation_absolue_x: [int, float]):
     """initialise la valeur courant de la translation"""
     processing.__dx = translation_absolue_x
 
 
-def get_dx() -> [int,float]:
+def get_dx() -> [int, float]:
     """retourne la valeur courant de la translation"""
     return processing.__dx
 
-def set_dy(tanslation_absole_y: [int,float]):
+
+def set_dy(tanslation_absole_y: [int, float]):
     """initialise la translation absolue en y"""
     processing.__dy = tanslation_absole_y
 
 
-def get_dy() -> [int,float]:
+def get_dy() -> [int, float]:
     """retourne la translation absolue en y"""
     return processing.__dy
 
-def set_rotation(angle: [int,float]):
+
+def set_rotation(angle: [int, float]):
     """initialise la valeur de l'angle de rotation"""
     processing.__rotation = radians(angle)
 
 
+def get_rotation() -> float:
+    return processing.__rotation
 
 
 def get_angle_mode() -> float:
     """retourne la valeur de angle mode"""
     return processing.__angle_mode
 
-def set_angle_mode(valeur:float):
+
+def set_angle_mode(valeur: float):
     processing.__angle_mode = valeur
+
 
 def set_rect_center_mode(center: bool):
     """initialise la valeur de rect_center_mode"""
@@ -390,4 +444,9 @@ def get_rect_center_mode() -> bool:
     return processing.__rect_center_mode
 
 
+def set_scale(echelle: [int, float]):
+    processing.__scale = echelle
 
+
+def get_scale():
+    return processing.__scale

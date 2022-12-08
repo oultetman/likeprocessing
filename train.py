@@ -54,8 +54,6 @@ def compute():
 
 def draw():
     translate(x, 0)
-    flip_h(200)
-    flip_v(200)
     locomotive(10, 30, "black")
     for i in range(3):
         if i % 2 == 0:

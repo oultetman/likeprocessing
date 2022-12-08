@@ -50,8 +50,8 @@ class Ball:
     def colision(self, objets: ["Ball"]):
         for o in objets:
             if o != self:
-                if self.is_in(o.left, o.y) or self.is_in(o.right, o.y) or self.is_in(o.x, o.top) or self.is_in(o.x,
-                                                                                                               o.bottom):
+                if self.is_in(o.left, o.__print_y) or self.is_in(o.right, o.__print_y) or self.is_in(o.__print_x, o.top) or self.is_in(o.__print_x,
+                                                                                                                                       o.bottom):
                     self.sens_x = -self.sens_x
                     self.sens_y = -self.sens_y
                     o.sens_x = -o.sens_x

@@ -7,7 +7,13 @@ from likeprocessing.exceptions import RgbError
 from likeprocessing.trigo import angleMode
 import likeprocessing.processing
 
-rgb_value = tuple[int,int,int]
+rgb_value = tuple[int, int, int]
+
+
+def base_colors_name() -> list:
+    return ["black", "blue", "purple", "cyan", "pink",
+            "red", "orange", "yellow", "green", "olive",
+            "brown", "grey", "white"]
 
 
 def background(couleur_image: any):
@@ -21,10 +27,10 @@ def background(couleur_image: any):
     processing.draw_background()
 
 
-def noFill():
-    """supprime la couleur de fond d'une figure (rect, square, ellipse ... """
-    # processing.__border_width = processing.__last_border_width
+def noFill() -> tuple:
+    """supprime la couleur de fond d'une figure (rect, square, ellipse ...) """
     processing.__no_fill = True
+    return processing.__fill_color
 
 
 def stroke(couleur: any = None):
@@ -32,20 +38,33 @@ def stroke(couleur: any = None):
     processing.__border_width = processing.__last_border_width
     if couleur is None:
         return processing.__border_color
+    last_color = processing.__border_color
     c = rgb_color(couleur)
     if c is not None:
         processing.__border_color = c
+        return last_color
 
 
-def strokWeight(epaisseur: int):
-    processing.__border_width = epaisseur
-    processing.__last_border_width = processing.__border_width
+def strokeWeight(epaisseur: int = None):
+    if epaisseur is not None:
+        processing.__last_border_width = processing.__border_width
+        processing.__border_width = epaisseur
+    return processing.__last_border_width
 
 
 def noStroke():
     """supprime le bord des figures"""
     processing.__last_border_width = processing.__border_width
     processing.__border_width = 0
+    return processing.__last_border_width
+
+
+def noCursor():
+    pygame.mouse.set_visible(False)
+
+
+def cursor(cursor=pygame.SYSTEM_CURSOR_ARROW):
+    pygame.mouse.set_cursor(cursor)
 
 
 def save_fill_stroke():
@@ -85,6 +104,8 @@ def get_stroke():
 
 def fill(couleur: Union[str, rgb_value, None] = None):
     """initialise la couleur de fond des figures"""
+    if couleur is None:
+        return processing.__last_fill_color
     try:
         rgb_valid(couleur)
     except Exception as err:
@@ -92,8 +113,10 @@ def fill(couleur: Union[str, rgb_value, None] = None):
         raise
     c = rgb_color(couleur)
     if c is not None:
+        processing.__last_fill_color = processing.__fill_color
         processing.__fill_color = c
     processing.__no_fill = False
+    return processing.__last_fill_color
 
 
 def fill_mouse_on(couleur: any):
@@ -145,11 +168,13 @@ def stop() -> None:
     """ stop the loop like no_loop()"""
     noLoop()
 
-def rgb_valid(valeur:tuple):
+
+def rgb_valid(valeur: tuple):
     if isinstance(valeur, tuple):
         for v in valeur:
-            if v<0 or v>255:
+            if v < 0 or v > 255:
                 raise RgbError("In rgb tuple each number must be in [0;255]")
+
 
 def rgb_color(valeur) -> [tuple, None]:
     """retourne un tuple de 4 éléments rgb + transparence à partir d"un tuple rgb, d'une chaine de caractères
@@ -177,6 +202,23 @@ def reset():
     processing.__dx = 0
     processing.__dy = 0
     processing.__rotation = 0
-    processing.__axis = None
+    processing.__axis = (0, 0)
     processing.__flip_axe_v = None
     processing.__flip_axe_h = None
+    processing.__print_x = 5
+    processing.__print_y = 5
+    processing.__print_ligne = [25]
+
+
+if __name__ == '__main__':
+    f = fill("black")
+    print(f)
+    print(fill(f))
+
+    f = noFill()
+    print(f)
+
+    s = noStroke()
+    print(s)
+    sw = strokeWeight(3)
+    print(sw, strokeWeight(sw))

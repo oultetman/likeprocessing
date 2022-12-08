@@ -7,18 +7,22 @@ def draw_title():
 
 
 def setup():
-    angleMode("deg")
-    createCanvas(400, 200)
+    createCanvas(400, 400)
     background("grey")
     fill("white")
     fill_mouse_on("red")
-
+    angleMode("deg")
+    rectMode('center')
+    textAlign("center","center")
 
 def draw():
     draw_title()
-    triangle(20, 10, 50, 15, 40, 70, fill_mouse_on="yellow", stroke_weight=3)
+    triangle(20, 10, 50, 15, 40, 70, fill = "green", fill_mouse_on="yellow", stroke_weight=3)
     arc(200, 110,40,40,0,90)
-    text("bonjour", 150, 30)
+    for angle in range(0,360,10):
+        rotate(-angle,(200,200))
+        text(str(angle), 200, 20,fill="pink",no_stroke=True)
+        line(200,200,200,20)
 
     line(100, 100, 350, 150)
     save_fill_stroke()

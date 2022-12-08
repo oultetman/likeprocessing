@@ -1,17 +1,18 @@
 from likeprocessing.processing import *
 
-x, y = 10, 10
-xprec, yprec = x, y
+__print_x, __print_y = 10, 10
+xprec, yprec = __print_x, __print_y
 t = Tempo(1000)
 
 
 def setup():
     createCanvas(400, 200)
     background("grey")
+    cursor(SYSTEM_CURSOR_IBEAM)
 
 
 def compute():
-    global x, y, xprec, yprec
+    global __print_x, __print_y, xprec, yprec
     if mouse_click_down():
         if in_polygone(*mouseXY(), [[x, y], [x + 50, y], [x + 50, y + 50], [x, y + 50]]):
             xprec, yprec = x, y
@@ -22,7 +23,7 @@ def compute():
         fill("red")
 
 def draw():
-    rect(x, y, 50, 50)
+    rect(__print_x, __print_y, 50, 50)
 
 
 run(globals())

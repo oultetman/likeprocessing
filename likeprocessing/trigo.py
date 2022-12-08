@@ -12,13 +12,13 @@ def angleMode(mode_angle: str = "") -> str:
     'deg' les angles des fonctions trigonométriques seront pris comme des degrés\n
     'grd' les angles des fonctions trigonométriques seront pris comme des grades\n
     Une exception est levée en cas d'erreur de paramètre
-
-    si mode_angle == "" la valeur de mode est retournée (str)
+    retourne la valeur précedente de mode et si mode_angle == "" la valeur actuelle de mode est retournée (str)
      """
     global __angle_mode_str
+    angle_mode = __angle_mode_str
     if mode_angle == "":
         return __angle_mode_str
-    if mode_angle.lower() == "deg":
+    elif mode_angle.lower() == "deg":
         processing.set_angle_mode(math.pi / 180)
         __angle_mode_str = "deg"
     elif mode_angle.lower() == "grd":
@@ -29,6 +29,7 @@ def angleMode(mode_angle: str = "") -> str:
         __angle_mode_str = "rad"
     else:
         raise ValueError
+    return angle_mode
 
 
 def cos(angle: float) -> float:
@@ -115,4 +116,5 @@ if __name__ == '__main__':
     print(atan2(-math.sqrt(3) / 2, -0.5))
     print(grades(180))
     print(radians(180))
-    print(angleMode())
+    a = angleMode("rad")
+    print(a,angleMode(),angleMode(a),angleMode())

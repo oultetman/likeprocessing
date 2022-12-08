@@ -1,4 +1,5 @@
-## Structure du programme
+
+## Structure du programme 
 
 
 ### Installation:
@@ -25,9 +26,9 @@ def setup():
 ```
 
 
-Cette fonction permet de définir les dimensions de la fenêtre de tracé, et quelques paramètres initiaux. Les valeurs données aux paramètres de la fonction **createCanvas() ** sont affectées automatiquement à deux variables systèmes : width pour le premier paramètre et height pour le second. On peut récupérer les valeurs de width et height grâce au fonction **width()** et **height()**
+Cette fonction permet de définir les dimensions de la fenêtre de tracé, et quelques paramètres initiaux. Les valeurs données aux paramètres de la fonction **createCanvas() ** sont affectées automatiquement à deux variables systèmes : **width** pour le premier paramètre et **height** pour le second. Un troisième paramètre **resizable** optionnel permet d'offrir la possibilité de redimensionner la fenêtre avec la souris  On peut récupérer les valeurs de **width** et **height** grâce au fonction **width()** et **height()**
 
-Puis la fonction draw() est ensuite exécutée en boucle, après l'exécution de setup():
+Puis la fonction **draw()** est ensuite exécutée en boucle, après l'exécution de **setup()**:
 
 
 ```
@@ -47,7 +48,7 @@ def compute():
 ```
 
 
-Cette fonction n'est pas obligatoire. Elle permet d'éviter de trop surcharger la fonction **draw()** en réservant celle-ci aux instructions de dessins. La fonction **compute()** si elle existe est insérée dans la boucle et est exécutée avant la fonction **draw()**
+Cette fonction n'est pas obligatoire. Elle permet d'éviter de trop surcharger la fonction **draw()** en réservant celle-ci aux instructions de dessins. La fonction **compute()** si elle existe est insérée dans la boucle et est exécutée avant la fonction **draw()** 
 
 
 ## Structure de base :
@@ -194,13 +195,13 @@ setFrameRate(valeur)
   <tr>
    <td>fill(couleur=None)
    </td>
-   <td>Définit la couleur de remplissage des formes (255 par défaut) et réactive le remplissage des formes. Sans paramètre seul le remplissage est activé (utile après un noFill())
+   <td>Définit la couleur de remplissage des formes (255 par défaut) et réactive le remplissage des formes. Sans paramètre seul le remplissage est activé (utile après un noFill()). Retourne la valeur précédente du remplissage.
    </td>
   </tr>
   <tr>
    <td>get_fill()
    </td>
-   <td>Retour la couleur de fond actuelle
+   <td>Retourne la couleur de fond actuelle
    </td>
   </tr>
   <tr>
@@ -212,7 +213,7 @@ setFrameRate(valeur)
   <tr>
    <td>stroke(couleur)
    </td>
-   <td>Définit la couleur du tracé des bords des formes et des lignes("black" par défaut).
+   <td>Définit la couleur du tracé des bords des formes et des lignes("black" par défaut). Retourne la valeur précédente de la couleur.
    </td>
   </tr>
   <tr>
@@ -224,7 +225,7 @@ setFrameRate(valeur)
   <tr>
    <td>noStroke()
    </td>
-   <td>Désactive le tracé du contour des figures.
+   <td>Désactive le tracé du contour des figures. Retourne la valeur précédente de la couleur.
    </td>
   </tr>
   <tr>
@@ -242,7 +243,7 @@ setFrameRate(valeur)
 </table>
 
 
-Si noFill() et noStroke() sont exécutées en même temps, rien n'est tracé dans la zone de dessin.
+Si **noFill()** et **noStroke() **sont exécutées en même temps, rien n'est tracé dans la zone de dessin.
 
 
 ## Formes
@@ -251,6 +252,12 @@ Si noFill() et noStroke() sont exécutées en même temps, rien n'est tracé dan
 ### Primitives 2d
 
 L'origine du repère est située en haut à gauche. Les abscisses augmentent de gauche à droite, les ordonnées augmentent de haut en bas.
+
+
+
+![](./images/image1.png)
+
+
 
 <table>
   <tr>
@@ -286,7 +293,7 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
   <tr>
    <td>arc(x,y,largeur,hauteur,,angleDebut, angleFin)
    </td>
-   <td>Créer une portion d'ellipse type part de tarte qui pourra être rempli entre les points repérés par les angles angleDébut et angleFin (en radians). x et y sont les coordonnées du centre du cercle.
+   <td>Créer une portion d'ellipse type part de tarte qui pourra être rempli entre les points repérés par les angles angleDébut et angleFin (unité courante). x et y sont les coordonnées du centre du cercle.  
    </td>
   </tr>
   <tr>
@@ -298,13 +305,13 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
   <tr>
    <td>ellipseMode(corners_center: str)
    </td>
-   <td>Définie la position des points x et y des fonctions basées sur ellipse. par défaut : "corners" x et y sont les coordonnées du point en haut à gauche du rectangle dans lequel est inscrit l'ellipse. si les paramètre est "center" x et y représente le centre du rectangle
+   <td>Définie la position des points x et y des fonctions basées sur ellipse. par défaut : "corners" x et y sont les coordonnées du point en haut à gauche du rectangle dans lequel est inscrit l'ellipse. si les paramètre est "center" x et y représente le centre du rectangle. Retourne la valeur précédente du mode.
    </td>
   </tr>
   <tr>
    <td>rect(x, y, largeur, hauteur)
    </td>
-   <td>Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur. Sii rectMode('center') x et y sont les coordonnées du centre du rectangle. Si rectMode('corners') x,y sont les coordonnées du coin haut gauche. Le rectangle est rempli par la couleur définie par fill(couleur). Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées). largeur et/ou hauteur seront alors celles de l'image. Les paramètres allign_h (left, center et right) et  allign_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
+   <td>Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur. Sii rectMode('center') x et y sont les coordonnées du centre du rectangle. Si rectMode('corners') x,y sont les coordonnées du coin haut gauche. Le rectangle est rempli par la couleur définie par fill(couleur). Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées). largeur et/ou hauteur seront alors celles de l'image. Les paramètres <strong>allign_h </strong>(left, center et right) et  <strong>allign_v</strong> (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
    </td>
   </tr>
   <tr>
@@ -316,7 +323,7 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
   <tr>
    <td>rectMode(corners_center: str)
    </td>
-   <td>Définie la position des points x et y des fonctions basées sur rect. par défaut : "corners" x et y sont les coordonnées du point en haut à gauche du rectangle. si les paramètre est "center" x et y représente le centre du rectangle
+   <td>Définie la position des points x et y des fonctions basées sur rect. par défaut : "corners" x et y sont les coordonnées du point en haut à gauche du rectangle. si les paramètre est "center" x et y représente le centre du rectangle. Retourne la valeur précédente du mode.
    </td>
   </tr>
   <tr>
@@ -354,23 +361,50 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
   <tr>
    <td>strokeWeight(epaisseur)
    </td>
-   <td>Définit l'épaisseur du tracé en pixels (par défaut : 1 pixel).
+   <td>Définit l'épaisseur du tracé en pixels (par défaut : 1 pixel). Retourne la valeur précédente de la largeur du trait
    </td>
   </tr>
   <tr>
    <td>noStroke()
    </td>
-   <td>Désactive le tracé du contour des figures.
+   <td>Désactive le tracé du contour des figures en mettant la largeur du bord à 0. Retourne la valeur précédente de la largeur.
    </td>
   </tr>
   <tr>
    <td>stroke(couleur)
    </td>
-   <td>Définit la couleur du tracé des bords des formes et des lignes ("black" par défaut). Si aucune valeur n'est passée, celle-ci retourne la couleur actuelle.
+   <td>Définit la couleur du tracé des bords des formes et des lignes ("black" par défaut). Si aucune valeur n'est passée, celle-ci retourne la couleur actuelle. Retourne la valeur précédente de la couleur.
    </td>
   </tr>
 </table>
 
+
+
+## Paramètres optionnels:
+
+Les paramètres optionnels sont passés directement dans la fonction et ne concernent que celle-ci: 
+
+fill, no_fill, fill_mouse_on, stroke, stroke_weight.
+
+exemple :
+
+
+```
+triangle(20, 10, 50, 15, 40, 70, fill = "green", fill_mouse_on="yellow", stroke_weight=3)
+```
+
+
+l'ajout de **command = ma_fonction** au paramètre **fill_mouse_on="couleur"** permet d'exécuter la fonction **ma_fonction()**. Si l'on veut attribuer **ma_fonction** à plusieurs formes il est possible d'ajouter le paramètre **name = valeur**. Dans ce cas, la fonction **ma_fonction(name)** sera exécutée . Il faudra créer impérativement soit : 
+
+def ma_fonction():
+
+    pass
+
+ou
+
+def ma_fonction(nom):
+
+    pass
 
 
 ## Textes
@@ -386,13 +420,13 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
   <tr>
    <td>text(chaine, x, y)
    </td>
-   <td>Affiche la chaîne à la position (x, y) dans une boite ajustée. couleur, largeur bord et couleur bord de la boite idem formes.
+   <td>Affiche la chaîne à la position (x, y) dans une boite ajustée. couleur, largeur bord et couleur bord de la boite idem formes. Accepte les paramètres optionnels
    </td>
   </tr>
   <tr>
    <td>text(chaine, x, y, largeur, hauteur)
    </td>
-   <td>Affiche la chaîne à la position (x, y) dans une boite de dimensions largeur x hauteur. couleur, largeur bord et couleur bord de la boite idem formes.
+   <td>Affiche la chaîne à la position (x, y) dans une boite de dimensions largeur x hauteur. couleur, largeur bord et couleur bord de la boite idem formes. largeur et hauteur sont optionnels
    </td>
   </tr>
   <tr>
@@ -408,13 +442,13 @@ textAlign(alignement_horizontal, alignement_vertical)
 <p>
 textFont(police, taille)
    </td>
-   <td>Spécifie la police de caractères et éventuellement sa taille
+   <td>Spécifie la police de caractères et éventuellement sa taille. Retourne la police et la taille précédente 
    </td>
   </tr>
   <tr>
    <td>textSize(taille)
    </td>
-   <td>Spécifie la taille de la police de caractères
+   <td>Spécifie la taille de la police de caractères. Retourne la taille précédente de la police
    </td>
   </tr>
   <tr>
@@ -431,6 +465,27 @@ textFont(police, taille)
   </tr>
 </table>
 
+
+
+## Paramètres optionnels spécifique à text:
+
+Les paramètres optionnels sont passés directement dans la fonction et ne concernent que celle-ci: 
+
+la fonction text possèdes elle aussi des paramètres optionnels qui ne concernent que la fonction en cours : \
+**font, font_size, font_color** qui permettent  de définir la police, la taille des caractères ainsi que la couleur de ceux-ci. 
+
+**allign_h et allign_v** permettent de positionner le texte dans la boîte de texte comme **textAllign()**.
+
+**padx et pady** permettent de créer une marge autour du texte (valeur en pixels)  \
+exemple : 
+
+
+```
+text("salut les amis",20,30,300,allign_h="center",font="arial",font_size=48,fontTools="green",pady=10)
+```
+
+
+Ce code va afficher "salut les amis" dans un cadre de longueur 300 à la position x=20 et y=30. La hauteur du cadre est calculée en fonction de la hauteur du texte (font_size). **pady=10** ajoute 10 pixels au dessus et en dessous du texte. **Si la hauteur du cadre est donnée, si celle-ci est trop petite le texte sortira du cadre.**
 
 
 ## Événements
@@ -518,6 +573,30 @@ keyIsDown(touche)
    <td>annule l'effet de fill_mouse_on()
    </td>
   </tr>
+  <tr>
+   <td>mouse_click_down()
+   </td>
+   <td>renvoie True lors du passage de relâché à appuyé du bouton de la souris.
+   </td>
+  </tr>
+  <tr>
+   <td>mouse_click_up()
+   </td>
+   <td>renvoie True lors du passage de appuyé à relâché du bouton de la souris.
+   </td>
+  </tr>
+  <tr>
+   <td>mouse_click()
+   </td>
+   <td>idem mouseIsPressed()
+   </td>
+  </tr>
+  <tr>
+   <td>mouse_wheel_state()
+   </td>
+   <td>retourne 1 si la roulette de la souris est tournée vers l'avant, -1 vers l'arrière et 0 si elle est immobile.
+   </td>
+  </tr>
 </table>
 
 
@@ -550,7 +629,7 @@ si mode_angle == "" la valeur de mode est retournée (str)
   <tr>
    <td>cos(), sin(), tan(), acos(),asin(),atan(),atan2()
    </td>
-   <td>Fonctions trigonométriques usuelles l'unité considérée sera celle choisie avec angleMode(). atan2 : même fonctionnement que la fonction math.atan2 mais l'unité de l'angle retourné dépend  de angleMode()
+   <td>Fonctions trigonométriques usuelles l'unité considérée sera celle choisie avec angleMode(). atan2 : même fonctionnement que la fonction math.atan2 mais l'unité de l'angle retourné dépend  de angleMode()  
    </td>
   </tr>
   <tr>
@@ -558,7 +637,7 @@ si mode_angle == "" la valeur de mode est retournée (str)
 radians(mesure) \
 grades(mesure)
    </td>
-   <td>Convertit une mesure d'angle en degrés, en radians ou en grades. l'unité de mesure dépend de angleMode().
+   <td>Convertit une mesure d'angle en degrés, en radians ou en grades. l'unité de mesure dépend de angleMode(). 
    </td>
   </tr>
   <tr>
@@ -585,6 +664,12 @@ grades(mesure)
    <td>dist(x1,y1,x2,y2)
    </td>
    <td>retourne la distance entre deux points
+   </td>
+  </tr>
+  <tr>
+   <td>midPoint(x1, y1, x2, y2)
+   </td>
+   <td>retourne le milieu d'un segment défini par deux points
    </td>
   </tr>
 </table>
@@ -633,6 +718,12 @@ grades(mesure)
 sous la forme d'un tuple
    </td>
   </tr>
+  <tr>
+   <td>resize_image(picture:Image,size : tuple
+   </td>
+   <td>retourne une image redimensionné en fonction de size : (largeur,hauteur) 
+   </td>
+  </tr>
 </table>
 
 
@@ -664,13 +755,13 @@ La translation est remise à zéro avant chaque exécution de la fonction draw()
   <tr>
    <td>init_translate()
    </td>
-   <td>Force la remise à zéro de la translation. (A utiliser dans la fonction draw() en cas de besoin
+   <td>Force la remise à zéro de la translation. (A utiliser dans la fonction draw() en cas de besoin 
    </td>
   </tr>
   <tr>
    <td>rotate(angle,axis)
    </td>
-   <td>applique une rotation &lt;angle> par rapport à &lt;axis>. à toutes les fonctions de dessin et d'image. angle est une valeur absolue. Par défaut axis vaut (0,0)
+   <td>applique une rotation &lt;angle> par rapport à &lt;axis>. à toutes les fonctions de dessin et d'image. angle est une valeur absolue. Par défaut axis vaut (0,0). Cette fonction retourne la valeur précédente prise par la fonction sous la forme d'un tuple.
    </td>
   </tr>
   <tr>
@@ -692,6 +783,7 @@ La translation est remise à zéro avant chaque exécution de la fonction draw()
 ## Temporisations
 
 
+
 <table>
   <tr>
    <td><strong>fonctions</strong>
@@ -702,7 +794,8 @@ La translation est remise à zéro avant chaque exécution de la fonction draw()
   <tr>
    <td>t=Tempo(duree_ms)
    </td>
-   <td>t=Tempo(500) créer un objet de temporisation t de durée 500 ms qui se relance indéfiniment.
+   <td>t=Tempo(500) créer un objet de temporisation t de durée 500 ms qui se relance indéfiniment. 
+<img src="./images/image2.png">
    </td>
   </tr>
   <tr>
@@ -729,5 +822,10 @@ La translation est remise à zéro avant chaque exécution de la fonction draw()
    <td>permet de réinitialiser la temporisation avec une nouvelle valeur.
    </td>
   </tr>
+  <tr>
+   <td>t.reset()
+   </td>
+   <td>force le redémarrage de la temporisation.
+   </td>
+  </tr>
 </table>
-

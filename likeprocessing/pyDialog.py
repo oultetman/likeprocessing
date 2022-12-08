@@ -27,9 +27,20 @@ class Boite(pygame.Rect):
         self.image_rect: pygame.surface = kwargs.get('image', None)
         self.destroy = False
         self.is_disabled = kwargs.get('disabled', False)
+        self._visible = True
+        if isinstance(self.parent, Dialog) and self.parent.cadre:
+            self.top += 25
 
     def init(screen: pygame.Surface):
         Boite.ecran = screen
+
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self, value: bool):
+        self._visible = value
 
     @property
     def parent(self):
@@ -40,37 +51,38 @@ class Boite(pygame.Rect):
         self.Parent = monPere
 
     def setX(self, value: int):
-        self.x = value
+        self.x = value + self.parent.x
 
     def setY(self, value: int):
-        self.y = value
+        self.y = value + self.parent.y
 
     def move(self, x: int, y: int):
         self.setX(x)
         self.setY(y)
 
     def draw(self):
-        if self.is_disabled is True:
-            couleur_bord = self.couleurBordDisabled
-            couleur_fond = self.couleurFondDisabled
-        else:
-            couleur_bord = self.couleurBord
-            couleur_fond = self.couleurFond
-
-        if self.image_rect is None:
-            if self.couleurFond is not None:
-                r = pygame.Surface((self.width, self.height))
-                r.fill(couleur_fond)
+        if self.visible:
+            if self.is_disabled is True:
+                couleur_bord = self.couleurBordDisabled
+                couleur_fond = self.couleurFondDisabled
             else:
-                r = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
-                r = r.convert_alpha()
-            Boite.ecran.blit(r, [self.Parent.left + self.left, self.Parent.top + self.top])
-        else:
-            Boite.ecran.blit(self.image_rect, (self.Parent.left + self.left, self.Parent.top + self.top),
-                             (0, 0, self.image_rect.get_width(), self.image_rect.get_height()))
-        if self.largeurBord > 0:
-            r = pygame.Rect(self.Parent.left + self.left, self.Parent.top + self.top, self.width, self.height)
-            pygame.draw.rect(Boite.ecran, couleur_bord, r, self.largeurBord)
+                couleur_bord = self.couleurBord
+                couleur_fond = self.couleurFond
+
+            if self.image_rect is None:
+                if self.couleurFond is not None:
+                    r = pygame.Surface((self.width, self.height))
+                    r.fill(couleur_fond)
+                else:
+                    r = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
+                    r = r.convert_alpha()
+                Boite.ecran.blit(r, [self.Parent.left + self.left, self.Parent.top + self.top])
+            else:
+                Boite.ecran.blit(self.image_rect, (self.Parent.left + self.left, self.Parent.top + self.top),
+                                 (0, 0, self.image_rect.get_width(), self.image_rect.get_height()))
+            if self.largeurBord > 0:
+                r = pygame.Rect(self.Parent.left + self.left, self.Parent.top + self.top, self.width, self.height)
+                pygame.draw.rect(Boite.ecran, couleur_bord, r, self.largeurBord)
 
     def collidepoint(self, x, y):
         return super().collidepoint(x - self.parent.left, y - self.parent.top)
@@ -103,7 +115,6 @@ class MultiLineText(Boite):
         self.angle = angle
         self.image = self.imageTexte()
 
-
     def text(self, texte: [str, None] = None):
         if texte is None:
             return self._texte
@@ -129,9 +140,9 @@ class MultiLineText(Boite):
             r = text_bitmap[-1].get_rect()
             width = max(width, r.width)
             height = height + r.height
-        image = pygame.Surface((width, height),pygame.SRCALPHA,32)
+        image = pygame.Surface((width, height), pygame.SRCALPHA, 32)
         y = 0
-        x=0
+        x = 0
         for l in text_bitmap:
             if self.align_h == "LEFT":
                 x = 0
@@ -145,26 +156,27 @@ class MultiLineText(Boite):
             image = pygame.transform.rotate(image, self.angle)
             width = image.get_width()
             height = image.get_height()
-        self.width = max(width+4, self.width)
-        self.height = max(height+4, self.height)
+        self.width = max(width + 4, self.width)
+        self.height = max(height + 4, self.height)
         return image
 
     def draw(self):
-        # fonction qui permet l'affichage de texte à  l'ecran
-        super().draw()
-        if self.align_h == "LEFT":
-            x = self.Parent.left + self.left + 2
-        elif self.align_h == "CENTER":
-            x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
-        elif self.align_h == "RIGHT":
-            x = self.Parent.left + self.left - 2 + (self.width - self.image.get_width())
-        if self.align_v == "TOP":
-            y = self.Parent.top + self.top + 2
-        elif self.align_v == "CENTER":
-            y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
-        elif self.align_v == "BOTTOM":
-            y = self.Parent.top + self.top - 2 + (self.height - self.image.get_height())
-        Boite.ecran.blit(self.imageTexte(), [x, y])
+        if self.visible:
+            # fonction qui permet l'affichage de texte à  l'ecran
+            super().draw()
+            if self.align_h == "LEFT":
+                x = self.Parent.left + self.left + 2
+            elif self.align_h == "CENTER":
+                x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
+            elif self.align_h == "RIGHT":
+                x = self.Parent.left + self.left - 2 + (self.width - self.image.get_width())
+            if self.align_v == "TOP":
+                y = self.Parent.top + self.top + 2
+            elif self.align_v == "CENTER":
+                y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
+            elif self.align_v == "BOTTOM":
+                y = self.Parent.top + self.top - 2 + (self.height - self.image.get_height())
+            Boite.ecran.blit(self.imageTexte(), [x, y])
 
     def __str__(self):
         return super().__str__() + " " + str(self.text)
@@ -236,27 +248,28 @@ class Label(Boite):
         return text_bitmap
 
     def draw(self):
-        # fonction qui permet l'affichage de texte à  l'ecran
-        if self.angle != 0:
-            img = pygame.transform.rotate(self.image, self.angle)
-            self.width = max(img.get_width(), self.width)
-            self.height = max(img.get_height(), self.height)
-        else:
-            img = self.image
-        super().draw()
-        if self.align_h == "LEFT":
-            x = self.Parent.left + self.left + 2
-        elif self.align_h == "CENTER":
-            x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
-        elif self.align_h == "RIGHT":
-            x = self.Parent.left + self.left - 2 + (self.width - self.image.get_width())
-        if self.align_v == "TOP":
-            y = self.Parent.top + self.top + 2
-        elif self.align_v == "CENTER":
-            y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
-        elif self.align_v == "BOTTOM":
-            y = self.Parent.top + self.top - 2 + (self.height - self.image.get_height())
-        Boite.ecran.blit(img, [x, y])
+        if self.visible:
+            # fonction qui permet l'affichage de texte à  l'ecran
+            if self.angle != 0:
+                img = pygame.transform.rotate(self.image, self.angle)
+                self.width = max(img.get_width(), self.width)
+                self.height = max(img.get_height(), self.height)
+            else:
+                img = self.image
+            super().draw()
+            if self.align_h == "LEFT":
+                x = self.Parent.left + self.left + 2
+            elif self.align_h == "CENTER":
+                x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
+            elif self.align_h == "RIGHT":
+                x = self.Parent.left + self.left - 2 + (self.width - self.image.get_width())
+            if self.align_v == "TOP":
+                y = self.Parent.top + self.top + 2
+            elif self.align_v == "CENTER":
+                y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
+            elif self.align_v == "BOTTOM":
+                y = self.Parent.top + self.top - 2 + (self.height - self.image.get_height())
+            Boite.ecran.blit(img, [x, y])
 
     def __str__(self):
         return super().__str__() + " " + str(self.text)
@@ -295,9 +308,10 @@ class TextEdit(Boite):
         self.key_tempo = processing.Tempo(100)
 
     def draw(self):
-        super().draw()
-        for l in self.lignes:
-            l.draw()
+        if self.visible:
+            super().draw()
+            for l in self.lignes:
+                l.draw()
 
     @property
     def focus(self):
@@ -431,7 +445,10 @@ class LineEdit(Boite):
             kwargs['largeurBord'] = 0
         ps = pygame.font.SysFont(kwargs["police"], kwargs["size"])
         h = ps.size("bg")[0]
-        rect = tuple(list(rect[:3]) + [h + 4])
+        if len(rect) == 3:
+            rect = tuple(list(rect[:3]) + [h + 8])
+        elif len(rect) == 4:
+            rect = tuple(list(rect[:3]) + [max(h + 4, rect[3])])
         super().__init__(parent, rect, **kwargs)
         ft = pygame.font.SysFont(kwargs["police"], kwargs["size"])
         manager = pygame_textinput.TextInputManager(initial=texte)
@@ -445,6 +462,10 @@ class LineEdit(Boite):
         self.mouseOn = False
         self.name = name
         self.t = processing.Tempo(100)
+        self.fonction = kwargs.get("command", None)
+
+    def connecte(self, fonction):
+        self.fonction = fonction
 
     @property
     def focus(self):
@@ -466,7 +487,10 @@ class LineEdit(Boite):
         if self.is_disabled is False:
             self.scan_mouse()
             if self.focus:
+                text = self.texte.value
                 self.texte.update(events)
+                if self.fonction is not None and text != self.texte.value:
+                    self.fonction(self)
             else:
                 self.texte.cursor_visible = False
         else:
@@ -474,16 +498,17 @@ class LineEdit(Boite):
             self.texte.cursor_visible = False
 
     def draw(self):
-        # if self.is_disabled is True:
-        #     self.couleurBord = LineEdit.LINE_EDIT_BORD_DISABLED
-        #     self.couleurFond = LineEdit.LINE_EDIT_FOND_DISABLED
-        # else:
-        #     self.couleurBord = LineEdit.LINE_EDIT_BORD
-        #     self.couleurFond = LineEdit.LINE_EDIT_FOND
-        super().draw()
-        # Boite.ecran.blit(self.texte.get_surface(), (self.Parent.left + self.left + 3, self.Parent.top + self.top))
-        dec = (self.height - self.texte.surface.get_height()) / 2
-        Boite.ecran.blit(self.texte.surface, (self.Parent.left + self.left + 3, self.Parent.top + self.top + dec))
+        if self.visible:
+            # if self.is_disabled is True:
+            #     self.couleurBord = LineEdit.LINE_EDIT_BORD_DISABLED
+            #     self.couleurFond = LineEdit.LINE_EDIT_FOND_DISABLED
+            # else:
+            #     self.couleurBord = LineEdit.LINE_EDIT_BORD
+            #     self.couleurFond = LineEdit.LINE_EDIT_FOND
+            super().draw()
+            # Boite.ecran.blit(self.texte.get_surface(), (self.Parent.left + self.left + 3, self.Parent.top + self.top))
+            dec = (self.height - self.texte.surface.get_height()) / 2
+            Boite.ecran.blit(self.texte.surface, (self.Parent.left + self.left + 3, self.Parent.top + self.top + dec))
 
     def __str__(self):
         # return self.texte.input_string
@@ -501,6 +526,8 @@ class LineEdit(Boite):
                 self.mouseOn = True
             else:
                 self.mouseOn = False
+                if processing.mouse_click_down():
+                    self.focus = False
             if self.mouseOn and click is True and self.focus is False:
                 self.focus = True
                 self.parent.objet_focus = True
@@ -524,7 +551,7 @@ class LineEdit(Boite):
         self.set_text(texte)
 
     def set_text(self, texte: str):
-        self.texte.value = texte
+        self.texte.value = str(texte)
         self.texte.update([])
         self.texte.cursor_visible = False
 
@@ -551,27 +578,27 @@ class Bouton(Boite):
         self.fonction = kwargs.get("command", None)
         self.mouseOn = False
         self.mouseClick = False
-        self.texte = MultiLineText(parent, (2, 2), texte, **kwargs,align_v="center",align_h="center")
-        self.width = max(self.width,self.texte.width+4)
-        self.height = max(self.height,self.texte.height+4)
+        self.texte = MultiLineText(parent, (2, 2), texte, **kwargs, align_v="center", align_h="center")
+        self.width = max(self.width, self.texte.width + 4)
+        self.height = max(self.height, self.texte.height + 4)
         self.texte.left = self.left + (self.width - self.texte.width) // 2
         self.texte.top = self.top + (self.height - self.texte.height) // 2
+        self.focus = False
 
     def setX(self, value: int):
-        self.x = value
-        self.texte.left = self.left + (self.width - self.texte.width) // 2
+        self.x = value + self.parent.x
+        self.texte.left = self.left + self.parent.x + (self.width - self.texte.width) // 2
 
     def setY(self, value: int):
-        self.y = value
-        self.texte.top = self.top + (self.height - self.texte.height) // 2
+        self.y = value + self.parent.y
+        self.texte.top = self.top + self.parent.y + (self.height - self.texte.height) // 2
 
     def text(self, texte: [str, None] = None):
         if texte is None:
             return self.texte.text()
         self.texte.text(texte)
-        self.width = max(self.width,self.texte.width+4)
-        self.height = max(self.height,self.texte.height+4)
-
+        self.width = max(self.width, self.texte.width + 4)
+        self.height = max(self.height, self.texte.height + 4)
 
     @property
     def parent(self):
@@ -586,32 +613,33 @@ class Bouton(Boite):
         self.fonction = fonction
 
     def draw(self):
-        if self.is_disabled:
-            self.couleurFond = Bouton.BOUTON_FOND_DISABLED
-            self.texte.couleurFond = Bouton.BOUTON_FOND_DISABLED
-            self.texte.couleurBord = Bouton.BOUTON_FOND_DISABLED
-            self.texte.couleurPolice = Bouton.BOUTON_TEXT_COLOR_DISABLED
-            self.couleurBord = Bouton.BOUTON_TEXT_COLOR_DISABLED
-        else:
-            self.texte.couleurPolice = Bouton.BOUTON_TEXT_COLOR
-            if self.mouseOn:
-                self.couleurBord = Bouton.BOUTON_BORD_MOUSE_ON
-                if self.mouseClick:
-                    self.couleurFond = Bouton.BOUTON_BORD_MOUSE_ON
-                    self.texte.couleurFond = Bouton.BOUTON_BORD_MOUSE_ON
-                    self.texte.couleurBord = Bouton.BOUTON_BORD_MOUSE_ON
-                else:
-                    self.couleurFond = Bouton.BOUTON_FOND_MOUSE_ON
-                    self.texte.couleurFond = Bouton.BOUTON_FOND_MOUSE_ON
-                    self.texte.couleurBord = Bouton.BOUTON_FOND
+        if self.visible:
+            if self.is_disabled:
+                self.couleurFond = Bouton.BOUTON_FOND_DISABLED
+                self.texte.couleurFond = Bouton.BOUTON_FOND_DISABLED
+                self.texte.couleurBord = Bouton.BOUTON_FOND_DISABLED
+                self.texte.couleurPolice = Bouton.BOUTON_TEXT_COLOR_DISABLED
+                self.couleurBord = Bouton.BOUTON_TEXT_COLOR_DISABLED
             else:
-                self.couleurBord = Bouton.BOUTON_BORD
-                self.couleurFond = Bouton.BOUTON_FOND
-                self.texte.couleurFond = Bouton.BOUTON_FOND
-                self.texte.couleurBord = Bouton.BOUTON_FOND
+                self.texte.couleurPolice = Bouton.BOUTON_TEXT_COLOR
+                if self.mouseOn:
+                    self.couleurBord = Bouton.BOUTON_BORD_MOUSE_ON
+                    if self.mouseClick:
+                        self.couleurFond = Bouton.BOUTON_BORD_MOUSE_ON
+                        self.texte.couleurFond = Bouton.BOUTON_BORD_MOUSE_ON
+                        self.texte.couleurBord = Bouton.BOUTON_BORD_MOUSE_ON
+                    else:
+                        self.couleurFond = Bouton.BOUTON_FOND_MOUSE_ON
+                        self.texte.couleurFond = Bouton.BOUTON_FOND_MOUSE_ON
+                        self.texte.couleurBord = Bouton.BOUTON_FOND
+                else:
+                    self.couleurBord = Bouton.BOUTON_BORD
+                    self.couleurFond = Bouton.BOUTON_FOND
+                    self.texte.couleurFond = Bouton.BOUTON_FOND
+                    self.texte.couleurBord = Bouton.BOUTON_FOND
 
-        super().draw()
-        self.texte.draw()
+            super().draw()
+            self.texte.draw()
 
     def scan_mouse(self):
         if self.is_disabled is False:
@@ -619,14 +647,18 @@ class Bouton(Boite):
             click = processing.mouse_click()
             if self.collidepoint(x, y):
                 self.mouseOn = True
+                self.focus = True
             else:
                 self.mouseOn = False
+                self.focus = False
             if click is False and self.mouseClick is True:
                 self.mouseClick = False
                 if self.mouseOn is True and self.fonction is not None:
                     self.fonction()
             elif click is True and self.mouseOn is True:
                 self.mouseClick = True
+        else:
+            self.focus = False
 
     def __str__(self):
         return "Bouton " + super().__str__() + " " + str(self.texte)
@@ -648,22 +680,25 @@ class Dialog(Boite):
         self.pos = kwargs.get('pos', None)
         self.objet = {}
         cadre = kwargs.get('cadre', True)
+        self.destroyed = []
         self.cadre = cadre
         if self.cadre:
+            decy = 25
             self.addObjet(
-                Boite(self, (2, 2, self.width - 19, 16), couleurBord=Dialog.BORD, largeurBord=1,
-                      couleurFond=Dialog.FOND),
+                Boite(self, (2, 2 - decy, self.width - 19, 22), couleurBord=Dialog.BORD, largeurBord=1,
+                      couleurFond="lightblue"),
                 "title_box")
-            self.addObjet(Label(self, (4, 2, self.width - 19, 16), "Dialog" + str(Dialog.dialogue)), "title")
-            self.addObjet(Bouton(self, (self.width - 17, 2, 16, 16), "X"), "close")
+            self.addObjet(
+                Label(self, (2, 2 - decy, self.width - 19, 22), "Dialog" + str(Dialog.dialogue), align_v="center"),
+                "title")
+            self.addObjet(Bouton(self, (self.width - 17, 2 - decy, 16), "X"), "close")
             self.objet['close'].connecte(self.quitter)
-        self.visible = True
+        self._visible = True
         self.start_drop = None
         Dialog.dialogue += 1
         self.num_object = 1
         self.destroy = False
         self._focus = False
-        # self.focus = False
         self.modale = False
         self.positionne()
         self.objet_focus = False
@@ -678,7 +713,8 @@ class Dialog(Boite):
         self.y = (self.parent.height - self.height) // 2
 
     def quitter(self):
-        self.visible = False
+        self._visible = False
+        self.focus = False
         self.destroy = True
 
     @property
@@ -690,6 +726,20 @@ class Dialog(Boite):
         self._focus = value
         if self.cadre is True:
             self.objet['title'].enabled = self._focus
+        if self._focus:
+            self._visible = True
+
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self, value: bool):
+        if value:
+            self.focus = True
+        else:
+            self._visible = False
+            self.focus = False
 
     def setWidth(self, value: int):
         self.width = value
@@ -707,7 +757,7 @@ class Dialog(Boite):
 
     @title.setter
     def title(self, texte: str):
-        self.objet["title"].text = str(texte)
+        self.objet["title"].text(str(texte))
 
     def addObjet(self, objet, nom: str = None):
         if type(objet) == list:
@@ -726,8 +776,15 @@ class Dialog(Boite):
             if nom[:4] == 'obj_':
                 self.num_object += 1
 
-    def center(self, objet_name: [str, list[str]]):
-        if isinstance(objet_name, list):
+    def delObjet(self, nom_objet: str) -> object | None:
+        if self.objet.get(nom_objet) is not None:
+            self.destroyed.append(nom_objet)
+
+    def center(self, objet_name: [str, list[str]], groupe=False):
+        """centre horizontalement les objets sur le dialog"""
+        if isinstance(objet_name, str):
+            objet_name = [objet_name]
+        if groupe:
             mini = self.width
             maxi = 0
             for o in objet_name:
@@ -740,10 +797,37 @@ class Dialog(Boite):
             for o in objet_name:
                 self.objet[o].setX(decalage + self.objet[o].x)
         else:
-            self.objet[objet_name].setX((self.width - self.objet[objet_name].width) // 2)
+            for o in objet_name:
+                self.objet[o].setX((self.width - self.objet[o].width) // 2)
+
+    def pack(self, objet_name: [str, list[str]], **kwargs):
+        if isinstance(objet_name, str):
+            objet_name = [objet_name]
+        pady = kwargs.get("pady", None)
+        margin_left = kwargs.get("margin_left", None)
+        margin_right = kwargs.get("margin_right", None)
+        if pady is None:
+            hauteur_totale_objet = 0
+            for o in objet_name:
+                hauteur_totale_objet += self.objet[o].height
+            pady = round((self.height - hauteur_totale_objet) / (len(objet_name) + 1))
+        y = 0
+        for o in objet_name:
+            self.objet[o].setY(y + pady)
+            y = self.objet[o].bottom
+        if margin_left is None and margin_right is None:
+            self.center(objet_name)
+        elif margin_left is not None:
+            for o in objet_name:
+                self.objet[o].setX(margin_left)
+        elif margin_right is not None:
+            for o in objet_name:
+                self.objet[o].setX(self.right - margin_right - self.objet[o].width)
 
     def draw(self):
-        if self.visible:
+        while len(self.destroyed) > 0:
+            self.objet.pop(self.destroyed.pop())
+        if self._visible:
             super().draw()
             for o in self.objet.values():
                 o.draw()
@@ -751,40 +835,48 @@ class Dialog(Boite):
     def scan_mouse(self):
         x, y = processing.mouseXY()
         click = processing.mouse_click()
-        if self.visible and self.focus:
-            if click:
-                self.lostFocus()
-                self.objet_focus = False
-            else:
-                self.start_drop = None
+        is_ihm: bool = isinstance(self, IhmScreen)
+        modale = False
+        if is_ihm or (self.visible and self.focus):
+            if not is_ihm:
+                if click:
+                    self.lostFocus()
+                    self.objet_focus = False
+                else:
+                    self.start_drop = None
             for o in self.objet.values():
-                if type(o) == Bouton:
-                    if o.collidepoint(x, y):
-                        o.mouseOn = True
-                    else:
-                        o.mouseOn = False
-                    if click is False and o.mouseClick is True:
-                        o.mouseClick = False
-                        if o.mouseOn is True and o.fonction is not None:
-                            o.fonction()
-                    elif click is True and o.mouseOn is True:
-                        o.mouseClick = True
-                elif isinstance(o, LineEdit):
-                    # if o.is_disabled == False and o.collidepoint(x, y) and click is True:
-                    #     o.focus = True
-                    o.scan_mouse()
-                elif isinstance(o, TextEdit):
-                    o.scan_events()
-                elif o == self.objet.get('title_box') and (
-                        o.collidepoint(x, y) or self.start_drop is not None) and click == True:
-                    if self.start_drop is None:
-                        self.start_drop = (x, y)
-                    elif self.start_drop != (x, y):
-                        self.x += x - self.start_drop[0]
-                        self.y += y - self.start_drop[1]
-                        self.start_drop = x, y
-                elif isinstance(o, TextEdit):
-                    o.scan_events()
+                if o.visible:
+                    # gestion de boite de dialogue enfant de ihm
+                    if isinstance(self, IhmScreen) and isinstance(o, Dialog):
+                        if o.collidepoint(x, y) or o.start_drop is not None:
+                            if click:
+                                o.focus = True
+                            affichage.cursor(SYSTEM_CURSOR_ARROW)
+                            o.scan_mouse()
+                            o.scanKeyboard()
+                        if o.modale:
+                            modale = True
+                            break
+            if not modale:
+                for o in self.objet.values():
+                    if o.visible:
+                        if type(o) == Bouton:
+                            o.scan_mouse()
+                        elif isinstance(o, LineEdit):
+                            o.scan_mouse()
+                        elif isinstance(o, TextEdit):
+                            o.scan_events()
+                        elif o == self.objet.get('title_box') and (
+                                o.collidepoint(x, y) or self.start_drop is not None) and click:
+
+                            if self.start_drop is None:
+                                self.start_drop = (self.x - x, self.y - y)
+                            else:
+                                self.x = x + self.start_drop[0]
+                                self.y = y + self.start_drop[1]
+
+                        elif isinstance(o, TextEdit):
+                            o.scan_events()
 
     def scanKeyboard(self):
         for o in self.objet.values():
@@ -800,6 +892,8 @@ class Dialog(Boite):
                 o.texte.cursor_visible = False
             if isinstance(o, TextEdit):
                 o.focus = False
+            else:
+                o.focus = False
 
     def ajuste(self, margin=10):
         """ajuste la boite de dialogue à son contenant avec une marge (margin)"""
@@ -813,7 +907,7 @@ class Dialog(Boite):
         self.setHeight(heightmax + margin)
         self.positionne()
 
-    def objet_by_name(self, name: str) -> Boite:
+    def objet_by_name(self, name: str) -> ["Dialog", Bouton, LineEdit, Label, MultiLineText, TextEdit]:
         return self.objet.get(name)
 
     def disabled(self, name: str):
@@ -831,6 +925,12 @@ class Dialog(Boite):
         else:
             self.objet_by_name(name).is_disabled = False
 
+    def mouse_on_object(self) -> bool:
+        for o in self.objet.values():
+            if o._visible and o.collidepoint(*processing.mouseXY()):
+                return True
+        return False
+
 
 class IhmScreen(Dialog):
     FOND = None
@@ -847,11 +947,17 @@ class IhmScreen(Dialog):
     def init(self):
         self.setWidth(processing.width())
         self.setHeight(processing.height())
-        self.focus = True
+        self.focus = False
 
     def scan_events(self):
         self.scan_mouse()
         self.scanKeyboard()
+
+    def obj_focused(self) -> [None, "Dialog", Bouton, Label, LineEdit, TextEdit]:
+        for o in self.objet.values():
+            if o.focus:
+                return o
+        return None
 
 
 class TextInput:

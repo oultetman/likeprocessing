@@ -35,3 +35,6 @@ def get_pixel_color(picture: Image, pos: tuple) -> tuple:
     """retourne la valeur de la couleur d'un pixel d'une image (picture)
      sous la forme d'un tuple"""
     return picture.get_at(pos)
+
+def resize_image(picture: Image, size: tuple[int,int]) -> Image:
+    return pygame.transform.smoothscale(picture,size)
