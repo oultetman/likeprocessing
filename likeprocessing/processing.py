@@ -61,6 +61,7 @@ __print_y = 5
 __print_ligne = [25]
 __scale = 1
 __resizable = 0
+__resized = False
 ihm = []
 from random import randint
 from likeprocessing.affichage import *
@@ -248,7 +249,7 @@ def quitter(value=None):
 
 def run(globales):
     global __key_pressed, __click, __click_down, __click_up, keys, __quitter, var_globales, __frameCount, clock, secondes
-    global __tempo_seconde, __tempo_centieme, centiemes, __events,__mouse_wheel
+    global __tempo_seconde, __tempo_centieme, centiemes, __events,__mouse_wheel,__resized
     successes, failures = pygame.init()
     print("{0} successes and {1} failures".format(successes, failures))
     clock = pygame.time.Clock()
@@ -279,7 +280,7 @@ def run(globales):
                 __mouse_wheel = event.y
             elif event.type == pygame.VIDEORESIZE:
                 processing.__width,processing.__height = event.w, event.h
-
+                __resized = True
         if globales.get('scan_event'):
             globales['scan_event']()
         if globales.get('compute'):
@@ -298,7 +299,10 @@ def run(globales):
         __click_down = False
         __click_up = False
         __mouse_wheel = 0
+        __resized = False
 
+def get_resized():
+    return processing.__resized
 
 def set_axis(axe: tuple):
     """initialise la valeur de l''axe de rotation"""
