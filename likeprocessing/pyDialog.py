@@ -597,7 +597,7 @@ class LineEdit(Boite):
                 if processing.mouse_click_down():
                     self.focus = False
             if self.mouseOn and click is True and self.focus is False:
-                if not isinstance(self.parent,TextEdit):
+                if not isinstance(self.parent, TextEdit):
                     self.parent.lostFocus()
                 self.focus = True
                 self.parent.objet_focus = True
@@ -966,16 +966,16 @@ class Dialog(Boite):
                 self.objet[o].setX(self.right - margin_right - self.objet[o].width)
 
     def draw(self):
-        from time import sleep
+        """dessine la boite de dialogue"""
         while len(self.destroyed) > 0:
             self.objet.pop(self.destroyed.pop())
         if self._visible:
             super().draw()
-            for o in self.objet.values():
-                o.draw()
-                # processing.redraw()
-                # sleep(0.1)
-                #o.mouseOn = False
+            if isinstance(self,ListBox):
+                self.draw()
+            else:
+                for o in self.objet.values():
+                    o.draw()
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
@@ -1138,36 +1138,45 @@ class ListBox(Dialog):
         kwargs["ajuste"] = kwargs.get("ajuste", False)
         kwargs["no_stroke"] = kwargs.get("no_stroke", True)
         self.liste_item = list_item
-        h= 21
+        h = 21
         kwargs["name"] = 0
         b = Bouton(self, (1, 1, self.width - 2, h), self.liste_item[0], **kwargs)
-        h=b.height
+        h = b.height
+        self.nb_affiche = len(self.liste_item)
         self.addObjet(b)
-        self.scroll_bar=None
-        for i in range(1,len(list_item)):
+        self.scroll_bar = None
+        self.debut = 0
+        for i in range(1, len(list_item)):
             kwargs["name"] = i
-            self.addObjet(Bouton(self, (1, 1+i*h, self.width - 2, h), self.liste_item[i], **kwargs))
+            self.addObjet(Bouton(self, (1, 1 , self.width - 2, h), self.liste_item[i], **kwargs))
         if kwargs["ajuste"]:
-            self.height = len(self.liste_item) * h+2
+            self.height = len(self.liste_item) * h + 2
         else:
-            if self.height< len(self.liste_item) * h+2:
-                self.scroll_bar = ScrollBar(self, self.height/( len(self.liste_item) * h+2))
-                self.addObjet(self.scroll_bar,"scoll_bar")
+            if self.height < len(self.liste_item) * h + 2:
+                self.nb_affiche = round(self.nb_affiche*((len(self.liste_item) * h + 2) - self.height)/(len(self.liste_item) * h + 2)) + 1
+            # self.height = self.nb_affiche * h + 2
+                self.scroll_bar = ScrollBar(self, len(self.liste_item)-self.nb_affiche)
+                for o in self.objet.values():
+                    o.width -= self.scroll_bar.width
+                self.addObjet(self.scroll_bar, "scoll_bar")
 
     def draw(self):
         while len(self.destroyed) > 0:
             self.objet.pop(self.destroyed.pop())
         if self._visible:
-            super().draw()
-            for o in self.objet.values():
-                if isinstance(o,Bouton):
-
-                    if self.collidepoint(o.x+self.x, o.y+self.y) and self.collidepoint(o.right+self.x, o.bottom+self.y):
-                        o.visible = True
-                    else:
-                        o.visible = False
+            boutons = list(self.objet.values())
+            self.debut = self.scroll_bar.value()
+            # self.debut = 0
+            fin = self.debut + self.nb_affiche
+            c=0
+            for i in range(self.debut,fin ):
+                o = boutons[i]
+                o.setY(c*o.height)
+                c+=1
                 o.draw()
                 o.mouseOn = False
+            if self.scroll_bar is not None:
+                self.scroll_bar.draw()
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
@@ -1176,34 +1185,57 @@ class ListBox(Dialog):
 
         super().scan_mouse()
 
+
 class ScrollBar:
 
-    def __init__(self, parent, taille: float, **kwargs):
+    def __init__(self, parent, pas: float, **kwargs):
         self.visible = True
         self.is_disabled = False
         self.parent = parent
         self.curseur = Boite(parent, (0, 0, 10, 20))
+        self.fond = Boite(parent, (self.parent.width - self.curseur.width, 0, self.curseur.width, self.parent.height))
+        self._width = self.curseur.width
+        self._height = self.parent.height
         self.curseur.mouse_click_down = False
         kwargs["orientation"] = kwargs.get("orientation", "e")
         self.orientation = kwargs.pop("orientation")
         self.pos = 0
         self.mouse_click_down = False
-        self.taille = taille
+        self.pas = pas
         if self.orientation == "e":
-            self.curseur.height = self.parent.height * self.taille
+            self.height = self.parent.height
             self.curseur.x = self.parent.right - self.parent.x - self.curseur.width
             self.curseur.y = (self.parent.height - self.curseur.height) * self.pos / 100
-            self.fond = Boite(self.parent, (self.curseur.x, 0, self.curseur.width, self.parent.height),fill="grey32")
+            self.fond = Boite(self.parent, (self.curseur.x, 0, self.curseur.width, self.parent.height), fill="grey32")
         elif self.orientation == "s":
-            self.curseur.width, self.curseur.height = self.curseur.height, self.curseur.width
-            self.curseur.width = self.parent.width * self.taille
+            self.width, self.curseur.height = self.curseur.height, self.curseur.width
+            self.width = self.parent.width * self.pas
             self.curseur.x = self.parent.width * self.pos / 100
             self.curseur.y = self.parent.height - self.curseur.height
-            self.fond = Boite(self.parent,(self.curseur.x, self.curseur.y, self.parent.width, self.curseur.height),fill="grey32")
+            self.fond = Boite(self.parent, (self.curseur.x, self.curseur.y, self.parent.width, self.curseur.height),
+                              fill="grey32")
+
+    @property
+    def width(self):
+        return self._width
+
+    @width.setter
+    def width(self, value):
+        self._width = value
+        self.fond.width = self._width
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, value):
+        self._height = value
+        self.fond.height = self._height
 
     def value(self):
         if self.orientation == "e":
-            return self.parent.top, self.curseur.y
+            return round(self.pas * (self.curseur.y) / (self.height - self.curseur.height))
 
     def draw(self):
         self.fond.draw()
@@ -1221,10 +1253,12 @@ class ScrollBar:
                 self.curseur.mouse_click_down = False
             if self.curseur.mouse_click_down:
                 if self.orientation == "s":
-                    self.curseur.centerx = min(max(x, self.curseur.width // 2), self.parent.width - self.curseur.width / 2)
+                    self.curseur.centerx = min(max(x, self.curseur.width // 2),
+                                               self.parent.width - self.curseur.width / 2)
                 elif self.orientation == "e":
-                    print(x,y,self.curseur.height // 2)
-                    self.curseur.centery = min(max(y, self.curseur.height // 2),self.parent.height -self.curseur.height/2)
+                    print(x, y, self.curseur.height // 2)
+                    self.curseur.centery = min(max(y, self.curseur.height // 2),
+                                               self.parent.height - self.curseur.height / 2)
 
 
 class TextInput:
