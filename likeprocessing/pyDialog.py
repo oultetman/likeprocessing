@@ -106,12 +106,12 @@ class Boite(pygame.Rect):
                 else:
                     r = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
                     r = r.convert_alpha()
-                Boite.ecran.blit(r, [self.Parent.left + self.left, self.Parent.top + self.top])
+                Boite.ecran.blit(r, [self.parent.left + self.left, self.parent.top + self.top])
             else:
-                Boite.ecran.blit(self.image_rect, (self.Parent.left + self.left, self.Parent.top + self.top),
+                Boite.ecran.blit(self.image_rect, (self.parent.left + self.left, self.parent.top + self.top),
                                  (0, 0, self.image_rect.get_width(), self.image_rect.get_height()))
             if self.stroke_weight > 0:
-                r = pygame.Rect(self.Parent.left + self.left, self.Parent.top + self.top, self.width, self.height)
+                r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width, self.height)
                 pygame.draw.rect(Boite.ecran, couleur_bord, r, self.stroke_weight)
 
     def draw_infobulle(self):
@@ -218,17 +218,17 @@ class MultiLineText(Boite):
             # fonction qui permet l'affichage de texte à  l'ecran
             super().draw()
             if self.align_h == "LEFT":
-                x = self.Parent.left + self.left + 2 + self.padx
+                x = self.parent.left + self.left + 2 + self.padx
             elif self.align_h == "CENTER":
-                x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
+                x = self.parent.left + self.left + (self.width - self.image.get_width()) // 2
             elif self.align_h == "RIGHT":
-                x = self.Parent.left + self.left - 2 - self.padx + (self.width - self.image.get_width())
+                x = self.parent.left + self.left - 2 - self.padx + (self.width - self.image.get_width())
             if self.align_v == "TOP":
-                y = self.Parent.top + self.top + 2 + self.pady
+                y = self.parent.top + self.top + 2 + self.pady
             elif self.align_v == "CENTER":
-                y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
+                y = self.parent.top + self.top + (self.height - self.image.get_height()) // 2
             elif self.align_v == "BOTTOM":
-                y = self.Parent.top + self.top - 2 - self.pady + (self.height - self.image.get_height())
+                y = self.parent.top + self.top - 2 - self.pady + (self.height - self.image.get_height())
             Boite.ecran.blit(self.image, [x, y])
             self.draw_infobulle()
 
@@ -322,17 +322,17 @@ class Label(Boite):
                 img = self.image
             super().draw()
             if self.align_h == "LEFT":
-                x = self.Parent.left + self.left + 2 + self.padx
+                x = self.parent.left + self.left + 2 + self.padx
             elif self.align_h == "CENTER":
-                x = self.Parent.left + self.left + (self.width - self.image.get_width()) // 2
+                x = self.parent.left + self.left + (self.width - self.image.get_width()) // 2
             elif self.align_h == "RIGHT":
-                x = self.Parent.left + self.left - 2 - self.padx + (self.width - self.image.get_width())
+                x = self.parent.left + self.left - 2 - self.padx + (self.width - self.image.get_width())
             if self.align_v == "TOP":
-                y = self.Parent.top + self.top + 2 + self.pady
+                y = self.parent.top + self.top + 2 + self.pady
             elif self.align_v == "CENTER":
-                y = self.Parent.top + self.top + (self.height - self.image.get_height()) // 2
+                y = self.parent.top + self.top + (self.height - self.image.get_height()) // 2
             elif self.align_v == "BOTTOM":
-                y = self.Parent.top + self.top - 2 - self.pady + (self.height - self.image.get_height())
+                y = self.parent.top + self.top - 2 - self.pady + (self.height - self.image.get_height())
             Boite.ecran.blit(img, [x, y])
             self.draw_infobulle()
 
@@ -431,6 +431,7 @@ class TextEdit(Boite):
         else:
             self.mouseOn = False
         if self.mouseOn and click is True:
+            self.parent.lostFocus()
             self.focus = True
 
     def scan_events(self):
@@ -573,7 +574,7 @@ class LineEdit(Boite):
             super().draw()
             # Boite.ecran.blit(self.texte.get_surface(), (self.Parent.left + self.left + 3, self.Parent.top + self.top))
             dec = (self.height - self.texte.surface.get_height()) / 2
-            Boite.ecran.blit(self.texte.surface, (self.Parent.left + self.left + 3, self.Parent.top + self.top + dec))
+            Boite.ecran.blit(self.texte.surface, (self.parent.left + self.left + 3, self.parent.top + self.top + dec))
             self.draw_infobulle()
 
     def __str__(self):
@@ -596,6 +597,8 @@ class LineEdit(Boite):
                 if processing.mouse_click_down():
                     self.focus = False
             if self.mouseOn and click is True and self.focus is False:
+                if not isinstance(self.parent,TextEdit):
+                    self.parent.lostFocus()
                 self.focus = True
                 self.parent.objet_focus = True
                 # positionne le curseur au niveau de la souris
@@ -641,19 +644,23 @@ class Bouton(Boite):
             rect = (rect[0], rect[1], 0, 0)
         elif len(rect) == 3:
             rect = (rect[0], rect[1], rect[2], 0)
-        if kwargs.get('no_fill', False):
-            raise KeyError("no_fill is not Bouton property")
-        if kwargs.get('no_stroke', False):
-            raise KeyError("no_stroke is not Bouton property")
+        # if kwargs.get('no_fill', False):
+        #     raise KeyError("no_fill is not Bouton property")
+        # if kwargs.get('no_stroke', False):
+        #     raise KeyError("no_stroke is not Bouton property")
+        kwargs["align_v"] = kwargs.get("align_v", "center")
+        kwargs["align_h"] = kwargs.get("align_h", "center")
         super().__init__(parent, rect, **kwargs)
         self.fonction = kwargs.get("command", None)
         self.mouseOn = False
         self.mouseClick = False
-        self.texte = MultiLineText(parent, (2, 2), texte, **kwargs, align_v="center", align_h="center")
-        self.width = max(self.width, self.texte.width + 4)
+        self.texte = MultiLineText(self, (2, 2, self.width - 4, self.height - 4), texte, **kwargs)
+        # self.width = max(self.width, self.texte.width + 4)
         self.height = max(self.height, self.texte.height + 4)
-        self.texte.left = self.left + (self.width - self.texte.width) // 2
-        self.texte.top = self.top + (self.height - self.texte.height) // 2
+        # self.texte.left = self.left + (self.width - self.texte.width) // 2
+        # self.texte.top = self.top + (self.height - self.texte.height) // 2
+        self.texte.left = self.left + 2
+        self.texte.top = self.top + 2
         self.focus = False
 
     def setX(self, value: int):
@@ -678,7 +685,7 @@ class Bouton(Boite):
     @parent.setter
     def parent(self, monPere):
         self.Parent = monPere
-        self.texte.Parent = monPere
+        self.texte.parent = monPere
 
     def connecte(self, fonction):
         self.fonction = fonction
@@ -959,12 +966,16 @@ class Dialog(Boite):
                 self.objet[o].setX(self.right - margin_right - self.objet[o].width)
 
     def draw(self):
+        from time import sleep
         while len(self.destroyed) > 0:
             self.objet.pop(self.destroyed.pop())
         if self._visible:
             super().draw()
             for o in self.objet.values():
                 o.draw()
+                # processing.redraw()
+                # sleep(0.1)
+                #o.mouseOn = False
 
     def scan_mouse(self):
         x, y = processing.mouseXY()
@@ -995,17 +1006,17 @@ class Dialog(Boite):
                 objets = list(self.objet.values())
                 for o in objets:
                     if o.visible:
-                        if type(o) == Bouton:
-                            o.scan_mouse()
-                        elif isinstance(o, LineEdit):
-                            o.scan_mouse()
-                        elif isinstance(o, TextEdit):
-                            o.scan_events()
-                        elif isinstance(o, MultiLineText):
-                            o.scan_mouse()
-                        elif isinstance(o, Label):
-                            o.scan_mouse()
-                        elif o == self.objet.get('title_box') and (
+                        # if type(o) == Bouton:
+                        #     o.scan_mouse()
+                        # elif isinstance(o, LineEdit):
+                        #     o.scan_mouse()
+                        # elif isinstance(o, TextEdit):
+                        #     o.scan_events()
+                        # elif isinstance(o, MultiLineText):
+                        #     o.scan_mouse()
+                        # elif isinstance(o, Label):
+                        #     o.scan_mouse()
+                        if o == self.objet.get('title_box') and (
                                 o.collidepoint(x, y) or self.start_drop is not None) and click:
 
                             if self.start_drop is None:
@@ -1016,6 +1027,11 @@ class Dialog(Boite):
 
                         elif isinstance(o, TextEdit):
                             o.scan_events()
+                        elif isinstance(o, ListBox):
+                            if o.collidepoint(*processing.mouseXY()):
+                                o.scan_mouse()
+                        else:
+                            o.scan_mouse()
                 # except:
                 #     print("error")
 
@@ -1113,6 +1129,102 @@ class IhmScreen(Dialog):
     def close_modale(self, object_name):
         self.modale = False
         self.objet_by_name(object_name).visible = False
+
+
+class ListBox(Dialog):
+    def __init__(self, parent, rect, list_item: list, **kwargs):
+        kwargs['cadre'] = None
+        super().__init__(parent, rect, **kwargs)
+        kwargs["ajuste"] = kwargs.get("ajuste", False)
+        kwargs["no_stroke"] = kwargs.get("no_stroke", True)
+        self.liste_item = list_item
+        h= 21
+        kwargs["name"] = 0
+        b = Bouton(self, (1, 1, self.width - 2, h), self.liste_item[0], **kwargs)
+        h=b.height
+        self.addObjet(b)
+        self.scroll_bar=None
+        for i in range(1,len(list_item)):
+            kwargs["name"] = i
+            self.addObjet(Bouton(self, (1, 1+i*h, self.width - 2, h), self.liste_item[i], **kwargs))
+        if kwargs["ajuste"]:
+            self.height = len(self.liste_item) * h+2
+        else:
+            if self.height< len(self.liste_item) * h+2:
+                self.scroll_bar = ScrollBar(self, self.height/( len(self.liste_item) * h+2))
+                self.addObjet(self.scroll_bar,"scoll_bar")
+
+    def draw(self):
+        while len(self.destroyed) > 0:
+            self.objet.pop(self.destroyed.pop())
+        if self._visible:
+            super().draw()
+            for o in self.objet.values():
+                if isinstance(o,Bouton):
+
+                    if self.collidepoint(o.x+self.x, o.y+self.y) and self.collidepoint(o.right+self.x, o.bottom+self.y):
+                        o.visible = True
+                    else:
+                        o.visible = False
+                o.draw()
+                o.mouseOn = False
+
+    def scan_mouse(self):
+        x, y = processing.mouseXY()
+        if self.collidepoint(x, y):
+            self.focus = True
+
+        super().scan_mouse()
+
+class ScrollBar:
+
+    def __init__(self, parent, taille: float, **kwargs):
+        self.visible = True
+        self.is_disabled = False
+        self.parent = parent
+        self.curseur = Boite(parent, (0, 0, 10, 20))
+        self.curseur.mouse_click_down = False
+        kwargs["orientation"] = kwargs.get("orientation", "e")
+        self.orientation = kwargs.pop("orientation")
+        self.pos = 0
+        self.mouse_click_down = False
+        self.taille = taille
+        if self.orientation == "e":
+            self.curseur.height = self.parent.height * self.taille
+            self.curseur.x = self.parent.right - self.parent.x - self.curseur.width
+            self.curseur.y = (self.parent.height - self.curseur.height) * self.pos / 100
+            self.fond = Boite(self.parent, (self.curseur.x, 0, self.curseur.width, self.parent.height),fill="grey32")
+        elif self.orientation == "s":
+            self.curseur.width, self.curseur.height = self.curseur.height, self.curseur.width
+            self.curseur.width = self.parent.width * self.taille
+            self.curseur.x = self.parent.width * self.pos / 100
+            self.curseur.y = self.parent.height - self.curseur.height
+            self.fond = Boite(self.parent,(self.curseur.x, self.curseur.y, self.parent.width, self.curseur.height),fill="grey32")
+
+    def value(self):
+        if self.orientation == "e":
+            return self.parent.top, self.curseur.y
+
+    def draw(self):
+        self.fond.draw()
+        self.curseur.draw()
+
+    def scan_mouse(self):
+        if self.is_disabled is False:
+            x, y = processing.mouseXY()
+            # x-= self.parent.x
+            # y-= self.parent.y
+            click = processing.mouse_click()
+            if self.curseur.collidepoint(x, y) and click:
+                self.curseur.mouse_click_down = True
+            elif not click:
+                self.curseur.mouse_click_down = False
+            if self.curseur.mouse_click_down:
+                if self.orientation == "s":
+                    self.curseur.centerx = min(max(x, self.curseur.width // 2), self.parent.width - self.curseur.width / 2)
+                elif self.orientation == "e":
+                    print(x,y,self.curseur.height // 2)
+                    self.curseur.centery = min(max(y, self.curseur.height // 2),self.parent.height -self.curseur.height/2)
 
 
 class TextInput:

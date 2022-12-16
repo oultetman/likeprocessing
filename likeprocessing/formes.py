@@ -327,8 +327,8 @@ def polygone(points: list, **kwargs):
                                 points)
         else:
             if processing.in_polygone(*processing.mouseXY(), points):
-                if (not click_up and processing.mouse_click_down()) or (
-                        click_up and processing.mouse_click_up()) and command is not None:
+                if ((not click_up and processing.mouse_click_down()) or (
+                        click_up and processing.mouse_click_up())) and command is not None:
                     if name is not None:
                         command(name)
                     else:
