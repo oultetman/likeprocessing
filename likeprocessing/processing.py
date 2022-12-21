@@ -3,6 +3,7 @@ import pygame
 from likeprocessing.pyDialog import *
 import math
 
+
 HALF_PI = math.pi / 2
 PI = math.pi
 QUARTER_PI = math.pi / 4
@@ -62,6 +63,7 @@ __print_ligne = [25]
 __scale = 1
 __resizable = 0
 __resized = False
+__print_console=[]
 ihm = []
 from random import randint
 from likeprocessing.affichage import *
@@ -279,7 +281,7 @@ def run(globales):
             elif event.type == MOUSEWHEEL:
                 __mouse_wheel = event.y
             elif event.type == pygame.VIDEORESIZE:
-                processing.__width,processing.__height = event.w, event.h
+                processing.__width, processing.__height = event.w, event.h
                 __resized = True
         if globales.get('scan_event'):
             globales['scan_event']()
@@ -300,6 +302,20 @@ def run(globales):
         __click_up = False
         __mouse_wheel = 0
         __resized = False
+def set_click(value):
+    global __click
+    __click = value
+
+def get_click():
+    return processing.__click
+
+def set_click_down(value):
+    global __click_down
+    __click_down = value
+
+def set_click_up(value):
+    global __click_up
+    __click_up = value
 
 def get_resized():
     return processing.__resized
@@ -454,3 +470,6 @@ def set_scale(echelle: [int, float]):
 
 def get_scale():
     return processing.__scale
+
+def get_background_color():
+    return processing.__background_color

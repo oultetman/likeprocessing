@@ -1,20 +1,26 @@
 import sys
 
 from likeprocessing.processing import *
+from likeprocessing.texte import *
+from likeprocessing.affichage import *
 import traceback
 
 
 def set_x(valeur: int):
     processing.__print_x = valeur
 
+
 def set_y(valeur: int):
     processing.__print_y = valeur
+
 
 def get_x():
     return processing.__print_x
 
+
 def get_y():
     return processing.__print_y
+
 
 def print_var(variable, **kwargs):
     selected = kwargs.get("selected", None)
@@ -68,3 +74,18 @@ def print_var(variable, **kwargs):
                 set_x(get_x() + textWidth(f"{nom} = {variable}") + 4)
                 processing.__print_ligne.append(25)
 
+
+def printc(*args):
+    processing.__print_console.append(args)
+
+
+def draw_console():
+    for ligne in processing.__print_console:
+        texte = ""
+        for m in ligne:
+            texte += str(m) + " "
+        text(texte, processing.__print_x, processing.__print_y, no_fill=True,no_stroke=True)
+        processing.__print_y+=20
+    processing.__print_y = 5
+    processing.__print_x = 5
+    processing.__print_console = []
