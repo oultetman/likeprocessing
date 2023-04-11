@@ -8,7 +8,40 @@ Image = pygame.Surface
 
 def loadImage(fichier: str) -> Image:
     """retourne une surface de type image"""
-    return pygame.image.load(fichier)
+    try:
+        return pygame.image.load(fichier)
+    except:
+        FileNotFoundError(fichier)
+
+def loadImages(liste_images:list[str],sens=0)->Image:
+    """Retourne une surface qui est l'assemblage de toutes les images
+    de la liste.Si sens = 1 les images sont assemblées verticalement
+    et horizontalement si sens =0 """
+    w, h = 0, 0
+    list_screen_image = []
+    if sens ==1:
+        for i in range(len(liste_images)):
+            list_screen_image.append(pygame.image.load(liste_images[i]))
+            w = max(w, list_screen_image[i].get_width())
+            h += list_screen_image[i].get_height()
+        img = pygame.Surface((w, h))
+        h = 0
+        for i in range(len(list_screen_image)):
+            img.blit(list_screen_image[i], (0, h))
+            h += list_screen_image[i].get_height()
+        return img
+    elif sens==0:
+        for i in range(len(liste_images)):
+            list_screen_image.append(pygame.image.load(liste_images[i]))
+            h = max(h, list_screen_image[i].get_height())
+            w += list_screen_image[i].get_width()
+        img = pygame.Surface((w, h))
+        w = 0
+        for i in range(len(list_screen_image)):
+            img.blit(list_screen_image[i], (w, 0))
+            w += list_screen_image[i].get_width()
+        return img
+
 
 
 def image(picture, x, y):

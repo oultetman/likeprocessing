@@ -85,6 +85,26 @@ run(globals())
    <td>Dimensions de la zone de dessin. Les valeurs de width et height sont définies par les paramètres de la fonction createCanvas().
    </td>
   </tr>
+  <tr>
+   <td>createCanvas()
+   </td>
+   <td> La fonction createCanvas(largeur,hauteur) permet de dimensionner la fenêtre de l'application. En plus de la largeur et de la hauteur on peut ajouter un troisieme paramètre à True pour que la fenêtre puisse être redimensionnée. (ex createCanvas(400,300,True).
+     <BR>On peut aussi changer l'icone de la fenêtre avec le paramètre facultatif icone :<br>
+     createCanvas(400,300,True,icone="image.png")  
+   </td>
+  </tr>
+  <tr>
+   <td>title("mon titre")
+   </td>
+   <td> La fonction title("mon titre") permet de changer le titre de la fenêtre par mon titre
+   </td>
+  </tr>
+  <tr>
+   <td>set_icone("icone.jpg")
+   </td>
+   <td> La fonction set_icone() permet de changer l'icône de la fenêtre
+   </td>
+  </tr>
 </table>
 
 
@@ -193,9 +213,33 @@ setFrameRate(valeur)
    </td>
   </tr>
   <tr>
+   <td>set_background_image(image: Image)
+   </td>
+   <td>Définit l'image d'arrière-plan de la zone de dessin.
+   </td>
+  </tr>
+  <tr>
+   <td>get_background_image()
+   </td>
+   <td>Récupère l'image d'arrière-plan de la zone de dessin.
+   </td>
+  </tr>
+  <tr>
+   <td>save_background():
+   </td>
+   <td>fait une copie du contenu de la fenêtre et le sauvegarde dans l'image d'arrière plan.
+   </td>
+  </tr>
+  <tr>
    <td>fill(couleur=None)
    </td>
    <td>Définit la couleur de remplissage des formes (255 par défaut) et réactive le remplissage des formes. Sans paramètre seul le remplissage est activé (utile après un noFill()). Retourne la valeur précédente du remplissage.
+   </td>
+  </tr>
+  <tr>
+   <td>fill_mouse_on(couleur: any):
+   </td>
+   <td>initialise la couleur de fond des figures qui affichera quand la souris est dessus.
    </td>
   </tr>
   <tr>
@@ -311,7 +355,7 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
   <tr>
    <td>rect(x, y, largeur, hauteur)
    </td>
-   <td>Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur. Sii rectMode('center') x et y sont les coordonnées du centre du rectangle. Si rectMode('corners') x,y sont les coordonnées du coin haut gauche. Le rectangle est rempli par la couleur définie par fill(couleur). Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées). largeur et/ou hauteur seront alors celles de l'image. Les paramètres <strong>allign_h </strong>(left, center et right) et  <strong>allign_v</strong> (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
+   <td>Créer un rectangle aux coordonnées x,y de largeur largeur et de hauteur. Si rectMode('center') x et y sont les coordonnées du centre du rectangle. Si rectMode('corners') x,y sont les coordonnées du coin haut gauche. Le rectangle est rempli par la couleur définie par fill(couleur). Si le paramètre image est renseigné (image= ...) le fond du rectangle sera occupé pas l'image retaillée aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées). largeur et/ou hauteur seront alors celles de l'image. Les paramètres <strong>allign_h </strong>(left, center et right) et  <strong>allign_v</strong> (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
    </td>
   </tr>
   <tr>
@@ -384,13 +428,15 @@ L'origine du repère est située en haut à gauche. Les abscisses augmentent de 
 
 Les paramètres optionnels sont passés directement dans la fonction et ne concernent que celle-ci: 
 
-fill, no_fill, fill_mouse_on, stroke, stroke_weight.
+fill, no_fill, fill_mouse_on, stroke, stroke_weight, command, fill_mousse_on, name. Pour les rectangles nous avons en plus image et border_rounded 
 
 exemple :
 
 
 ```
 triangle(20, 10, 50, 15, 40, 70, fill = "green", fill_mouse_on="yellow", stroke_weight=3)
+rect(10,100,100,50,fill = "red", image=loadImage("image.jpg")) # rectangle avec une image
+rect(150,100,100,60,fill= "blue",border_rounded = 10) # rectangle au coins arrondis avec un rayon de 10px 
 ```
 
 
@@ -689,7 +735,15 @@ grades(mesure)
   <tr>
    <td>loadImage(chemin)
    </td>
-   <td>Charge une image à partir d'un chemin et crée un objet Image. Si nécessaire, l'image peut être préchargée en plaçant l'appel à la fonction loadImage dans la fonction preload.
+   <td>Charge une image à partir d'un chemin et crée un objet Image. Si nécessaire, l'image peut être préchargée en plaçant l'appel à la fonction loadImage en debut de programme.
+   </td>
+  </tr>
+  <tr>
+   <td>loadImages((liste_images:list[str],sens=0) ->Image:
+   </td>
+   <td>Retourne une surface qui est l'assemblage de toutes les images
+    de la liste. Si sens = 1 les images sont assemblées verticalement
+    et horizontalement si sens =0. Ex: loadImages(["image1.png","image2.jpg"])
    </td>
   </tr>
   <tr>
@@ -794,8 +848,8 @@ La translation est remise à zéro avant chaque exécution de la fonction draw()
   <tr>
    <td>t=Tempo(duree_ms)
    </td>
-   <td>t=Tempo(500) créer un objet de temporisation t de durée 500 ms qui se relance indéfiniment. 
-<img src="./images/image2.png">
+   <td>t=Tempo(1000) créer un objet de temporisation t de durée 1000 ms qui se relance indéfiniment. 
+    <img src="./images/image2.png">
    </td>
   </tr>
   <tr>
@@ -828,4 +882,419 @@ La translation est remise à zéro avant chaque exécution de la fonction draw()
    <td>force le redémarrage de la temporisation.
    </td>
   </tr>
+   <td>t=Monostable(duree_ms)
+   </td>
+   <td>t=Monostable(500) créer un objet de temporisation t de durée 500 ms qui ne se relance qu'après execution de la methode reset() 
+   </td>
+<tr>
+   <td>t=Pwm(500,25) 
+    </td>
+    <td>
+    créer un objet générateur de signaux carré de période 500 ms et de rapport cyclique 25% 
+   </td>
+  </tr>
 </table>
+
+Comme les objets Monostable et Pwm héritent de Tempo ils en possèdent les méthodes.
+
+# Tutoriel Interface homme Machine
+
+
+l’IHM d’un programme permet à l’utilisateur d’interagir avec celui-ci.
+
+En mode console les instructions print et input permettent de réaliser une interaction sommaire entre le programme et l’utilisateur.
+
+En mode graphique l’interaction sera plus poussée.
+
+
+## IHM en python avec LikeProcessing
+
+
+### à faire vous même 1
+
+Taper le code suivant dans un nouveau fichier dans votre ide préféré :
+
+
+```
+from likeprocessing.processing import *
+
+ihm = IhmScreen()
+
+def setup():
+   createCanvas(400, 200)
+   ihm.init()
+   background("grey")
+def compute():
+ihm.scan_events()
+
+
+def draw():
+ihm.draw()
+
+
+run(globals())
+```
+
+
+Quand vous exécutez ce code une fenêtre fonctionnelle vide apparaît.
+
+
+## Ajouter des Widgets à l’intérieur de la fenêtre.
+
+Nous allons ajouter du texte dans la fenêtre.
+
+
+### à faire vous même 2
+
+Ajouter le code suivant :
+
+
+```
+etiquette1 = Label(ihm, (10, 10, 0, 0), "notre premier texte")
+```
+
+
+ et lancer le programme. Que se passe-t-il ?
+
+Maintenant ajouter
+
+
+```
+ihm.addObjet(etiquette1)
+```
+
+
+ et lancer le programme. Que se passe-t-il ?
+
+Ajouter : 
+
+
+```
+ihm.pack(["obj_1"])
+
+```
+
+
+Que se passe-t-il ?
+
+Essayer pack(margin_left=10) , pack(margin_right=10)
+
+Ajouter une étiquette2 à la fenêtre.
+
+
+```
+etiquette2 = Label(ihm, (10, 10, 0, 0), "etiquette2")
+ihm.addObjet(etiquette2)
+```
+
+
+Où se place-t-elle sans utiliser **pack** ?
+
+Essayer avec la méthode pack et conclure.
+
+Remarque :
+
+on peut utiliser la méthode addObjet en lui passant une liste d'objet  
+
+
+```
+ihm.addObjet([texte,entry, bouton])
+```
+
+
+
+## Interaction des éléments (widget) avec l’utilisateur.
+
+On souhaite réaliser interface suivante qui contient :
+
+
+
+![](./images/image3.png)
+
+une étiquette (Label) donnant une explication à l’utilisateur, une zone de texte modifiable (LineEdit) et un bouton (Bouton) qui permettra de changer le titre de la fenêtre par le texte entré par l’utilisateur.
+
+
+```
+etiquette = Label(ihm, (10, 10, 0, 0), "Modifier le texte et appuyer sur le bouton")
+texte = LineEdit(ihm,(10,30,100,30),"")
+bouton = Bouton(ihm, (10, 60, 100, 30), "Changer le titre")
+ihm.addObjet([etiquette,texte, bouton])
+ihm.pack(["obj_1","obj_2","obj_3"])
+```
+
+
+n’oubliez pas d’utiliser les méthode addObjet() et pack()
+
+Lorsque vous lancez le programme, que se passe-t-il ?
+
+Modifier votre programme en complétant la création du bouton avec :
+
+
+```
+command=lambda : title(texte.text())
+```
+
+
+texte.text() permet de récupérer le texte écrit par l’utilisateur.
+
+lambda permet de définir une fonction sur une ligne (le paramètre **command** à besoin d’une fonction comme valeur). On peut aussi donner le nom d'une fonction que l'on aura déjà créé.
+
+Tester votre programme et modifier les paramètres de pack() en utilisant expand="x",pady=10,padx=10 pour obtenir la fenêtre ci-dessus (vous pouvez changer la hauteur de la fenêtre).
+
+
+## Précision sur l'objet IhmScreen
+
+L'objet IhmScreen possède plusieurs méthodes pour gérer l'interface graphique:
+
+addObjet permet d'ajouter des widgets à l'interface. Si les objets n'ont pas de nom (paramètre nom non renseigné) la méthode les nomme "obj_1", "obj_2",... 
+
+objet_by_name(nom_objet) permet de récupérer l'objet de l'interface pour par exemple changer sa couleur, récupérer la valeur du texte d'un LineEdit ou changer le **text()** d'un Label...
+
+Ex : 
+
+
+```
+ihm.addObjet(LineEdit(ihm,(10,30,100,30),""),"texte")
+```
+
+
+Cette commande ajoute à l'interface un champ modifiable qui sera appelé "texte" 
+
+print(ihm.objet_by_name("texte").text()) affichera sur le console la valeur du champ.
+
+On peut si on le souhaite supprimer un objet : ihm.delObjet(nom_objet) ou simplement le rendre invisible avec ihm.objet_by_name(nom_objet).visible = False
+
+
+## Création d’une calculatrice
+
+On désire réaliser l’interface suivante :
+
+Il faut créer des boutons pour chaque touche ainsi qu’une étiquette pour simuler l’écran de la calculatrice.
+
+
+```
+touche = [["1","2","3","*"],
+         ["4","5","6","/"],
+         ["7","8","9","+"],
+         ["0",".","²","-"],
+         ["(",")","=","AC"]]
+
+for i in range(5):
+   for j in range(4):
+       ihm.addObjet(Bouton(None, (10+.....*40, 50+.....*40, 40, 40), touche[i][j], command=lambda v=touche[i][j]: calcule(v)))
+```
+
+
+la dernière ligne peut être remplacer par :
+
+
+```
+ihm.addObjet(Bouton(None, (10+.....*40, 50+.....*40, 40, 40), touche[i][j], command=calcule, name = touche[i][j])) 
+```
+
+
+ce qui évite d'utiliser la fonction lambda.
+
+Le paramètre **name** sera envoyé à la fonction **calcule**.
+
+
+### à faire vous même 3
+
+créer l’IHM de la calculatrice.
+
+
+
+
+
+![](./images/image4.png)
+
+
+### à faire vous même 4
+
+Réalisation de l’interface graphique d'un logiciel de dessin
+
+On veut créer l’IHM du logiciel de dessin my_paint dont le code est le suivant:
+
+
+```
+from likeprocessing.processing import *
+
+forme = "cercle"
+couleur = "blue"
+point1 = None
+figure = []
+
+
+def draw_figure():
+   for f in figure:
+       largeur = abs(f[1][0] - f[2][0])
+       hauteur = abs(f[1][1] - f[2][1])
+       if f[0] == "rectangle":
+           rect(*f[1],largeur,hauteur,fill=f[3])
+       elif f[0] == "ligne":
+           line(*f[1],*f[2],stroke=f[3])
+       elif f[0] == "cercle":
+           circle(*f[1],dist(*f[1],*f[2]),fill=f[3],center_mode="center")
+
+
+def setup():
+   createCanvas(400, 200,True)
+   background("grey")
+   title("my_paint")
+
+
+def compute():
+   global point1
+   if mouse_click_down():
+       if point1 is None:
+           point1 = mouseXY()
+           figure.append([forme, point1, point1, couleur])
+   if len(figure)>0 and mouseIsPressed():
+       figure[-1][2] = mouseXY()
+   if mouse_click_up():
+       figure[-1][2] = mouseXY()
+       point1 = None
+
+
+
+def draw():
+   draw_figure()
+
+
+run(globals())
+```
+
+
+forme peut prendre les valeurs suivantes : "rectangle","cercle","ligne" et couleur les couleurs acceptés par likeprocessing.
+
+l'interface doit permettre :
+
+- afficher le type de forme en cours
+
+- de changer le type de forme,
+
+- couleur des figures,
+
+- la couleur du fond,
+
+- effacer la dernière forme,
+
+- effacer le dessin,
+
+
+## Utilisation des boîtes de dialogues d'information (Show)  et des boîtes de dialogues de questionnement (Ask…)
+
+Ces boîtes ont un comportement bloquant c'est à dire que seule l'interaction avec avec la boite est prise en compte : les fonctions compute(), draw(), exit() ne sont plus appelées.
+
+
+```
+ShowInfo(ihm, "Ceci est une \ninformation").response()
+```
+
+
+
+![](./images/image5.png)
+
+
+```
+ShowWarning(ihm, "Ceci est un \navertissement").response()
+```
+
+
+![](./images/image6.png)
+
+
+
+```
+ShowError(ihm, "Ceci est une \nerreur").response()
+```
+
+
+![](./images/image7.png)
+
+
+
+```
+AskYesNo(ihm, "Voulez-vous Vraiment\nquitter le jeu").response()
+```
+
+
+
+![](./images/image8.png)
+
+
+
+```
+AskOkCancel(ihm, "Voulez-vous Vraiment\nquitter le jeu").response()
+```
+
+
+
+![](images/image9.png)
+
+
+
+```
+AskRetriyCancel(ihm, "Voulez-vous tenter\nà nouveau\nvotre chance").response()
+```
+
+
+![](./images/image10.png)
+
+
+
+### Utilisation: 
+
+les bouton sont numéroté de la gauche vers la droite (0,1) .Le clique sur croix de la boîte retourne la valeur 4 
+
+
+```
+if AskYesNo(ihm, "Voulez-vous tenter\nà nouveau\nvotre chance").response() == 0:
+```
+
+
+Avec le code ci-dessus, la condition sera vraie si le bouton de gauche est cliqué. 
+
+Exemple d'utilisation d'une boîte et de la fonction exit().
+
+La fonction exit() est une fonction facultative (comme compute) destinée à simplifier la sortie du programme que ce soit par l'intermédiaire d'un bouton dédié ou par l'utilisation de la croix de fermeture de la fenêtre.
+
+Sans cette fonction lorsque que l'on appuie sur la croix la fonction **set_quit(True)** est exécutée ce qui à pour effet de fermer immédiatement l'application.
+
+ le code suivant qui utilise la fonction exit() permet de faire les choses avec plus d'élégance : 
+
+
+```
+def exit():
+   set_quit(False)
+   if AskYesNo(ihm, "Voulez-vous Vraiment\nquitter le jeu").response() == 0:
+       set_quit(True)
+```
+
+
+ajout d'un bouton dédié à la fermeture du programme : 
+
+
+```
+ihm.addObjet(Bouton(ihm, (0, 0, 100, 0), "Quitter",
+                   font_size=20, command=lambda : set_quit(True) ), bp_quitter")
+```
+
+
+On peut aussi passer par une fonction intermédiaire:
+
+
+```
+def bp_quitter():
+   set_quit(True)
+
+ihm.addObjet(Bouton(ihm, (0, 0, 100, 0), "Quitter",
+                   font_size=20, command=bp_quitter), "bp_quitter")
+```
+
+
+ 
+
+**Remarque **: on peut rendre si nécessaire la croix de la fenêtre likeprocessing inactive avec la fonction  **disabled_quit_cross(). **La fonction** enabled_quit_cross()** permet de la réactivée.
+
+ 

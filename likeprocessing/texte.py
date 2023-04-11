@@ -59,12 +59,12 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
         b = False
         i = False
     h, v = textAlign()
-    kwargs["allign_h"] = kwargs.get("allign_h", h)
-    kwargs["allign_v"] = kwargs.get("allign_v", v)
+    kwargs["align_h"] = kwargs.get("align_h", h)
+    kwargs["align_v"] = kwargs.get("align_v", v)
     ps = pygame.font.SysFont(font, size, bold=b, italic=i)
     text_bitmap = ps.render(texte, True, processing.rgb_color(color))
     text_bitmap = []
-    width = 0
+    width = largeur
     height = 0
     for t in texte.split("\n"):
         text_bitmap.append(ps.render(t, True, processing.rgb_color(color)))
@@ -75,9 +75,9 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
     yi = 0
     xi = 0
     for l in text_bitmap:
-        if kwargs["allign_h"].upper() == "CENTER":
+        if kwargs["align_h"].upper() == "CENTER":
             xi = (width - l.get_width()) // 2
-        elif kwargs["allign_h"].upper() == "RIGHT":
+        elif kwargs["align_h"].upper() == "RIGHT":
             xi = - 2 + (width - l.get_width())
         image.blit(l, (xi, yi))
         yi += l.get_height()

@@ -31,6 +31,7 @@ def in_polygone(x, y, points: list) -> bool:
 
 
 def in_line(x, y, x1, y1, x2, y2) -> bool:
+    """retourne True si la souris est sur le trait"""
     d1 = dist(x, y, x1, y1)
     d2 = dist(x, y, x2, y2)
     d = dist(x1, y1, x2, y2)
@@ -51,11 +52,13 @@ def in_circle(x, y, xc, yc, diametre) -> bool:
 
 
 def rectMode(corners_center: str = "") -> str:
+    """change center mode 'CORNERS' or 'CENTER' and return previous rectMode mode.
+    if no parameter return current value"""
     if processing.get_rect_center_mode():
         cc = "center"
     else:
         cc = "corners"
-    """change center mode 'CORNERS' or 'CENTER' and return previous rectMode mode. if no parameter return current value"""
+
     if corners_center.upper() == "CORNERS":
         processing.set_rect_center_mode(False)
     elif corners_center.upper() == "CENTER":
@@ -69,6 +72,15 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     Si rectMode('center') x et y sont les coordonnées du centre du rectangle.
     Si rectMode('corners') x,y sont les coordonnées du coin haut gauche.
     Le rectangle est rempli par la couleur définie par fill(couleur).
+    paramètres optionnels :
+    fill = couleur de remplissage prend le dessus sur fill()
+    stroke : couleur du contour prend le dessus sur stroke()
+    stroke_weight : largeur du trait prend le dessus sur strokeWeight()
+    fill_mouse_on : couleur du fond quand la souris est dessus
+    border_rounded = n arrondi les bords de la boite avec un rayon de n pixels
+    command : nom de la fonction à appeler si le rectangle est cliqué
+    name : valeur passée à la fonction désignée par command
+    image = de fond
     Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée
     aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées).
     largeur et/ou hauteur seront alors celle de l'image. Les paramètres allign_h (left, center et right) et
@@ -80,6 +92,7 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     allign_v = kwargs.get("allign_v", "top")
     rect_mode = kwargs.get("rect_mode", processing.__rect_center_mode)
     rect_mode = kwargs.get("center_mode", rect_mode)
+    border_rounded = kwargs.get("border_rounded", 0)
     if image is not None:
         if hauteur == 0:
             hauteur = image.get_height()
@@ -88,10 +101,28 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     if rect_mode:
         x -= largeur / 2
         y -= hauteur / 2
-    points = [[x, y],
-              [x + largeur, y],
-              [x + largeur, y + hauteur],
-              [x, y + hauteur]]
+    if border_rounded == 0:
+        points = [[x, y],
+                  [x + largeur, y],
+                  [x + largeur, y + hauteur],
+                  [x, y + hauteur]]
+    else:
+        points = [[x + border_rounded, y],
+                  [x + largeur - border_rounded, y]] + \
+                 arc_points(x + largeur - border_rounded, y + border_rounded, border_rounded * 2, border_rounded * 2,
+                            math.pi / 2, 0, False) + \
+                 [[x + largeur, y + border_rounded], [x + largeur, y + hauteur - border_rounded]] + \
+                 arc_points(x + largeur - border_rounded, y + hauteur - border_rounded, border_rounded * 2,
+                            border_rounded * 2,
+                            2 * math.pi, 3 * math.pi / 2, False) + \
+                 [[x + largeur - border_rounded, y + hauteur],
+                  [x + border_rounded, y + hauteur]] + \
+                 arc_points(x + border_rounded, y + hauteur - border_rounded, border_rounded * 2, border_rounded * 2,
+                            3 * math.pi / 2, math.pi, False) + \
+                 [[x, y + hauteur - border_rounded],
+                  [x, y + border_rounded]] + \
+                 arc_points(x + border_rounded, y + border_rounded, border_rounded * 2, border_rounded * 2,
+                            math.pi, math.pi / 2, False)
 
     # if image is None:
     polygone(points, **kwargs)
@@ -122,11 +153,37 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
         processing.screen.blit(img,
                                (x - img.get_width() / 2, y - img.get_height() / 2),
                                (0, 0, img.get_width(), img.get_height()))
-        # if processing.__border_width > 0:
-        #     processing.not_filled_polygone(points)
+        if processing.in_polygone(*processing.mouseXY(), points):
+            fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
+            if fill_mouse_on is not None:
+                fill_mouse_on = list(fill_mouse_on)[:3] + [127]
+                lx, ly = zip(*points)
+                min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
+                target_rect = pygame.Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+                shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+                pygame.draw.polygon(shape_surf, fill_mouse_on, [(x - min_x, y - min_y) for x, y in points])
+                processing.screen.blit(shape_surf, target_rect)
 
 
 def square(x: int, y: int, largeur: int, **kwargs):
+    """ trace un carré
+    Si rectMode('center') x et y sont les coordonnées du centre du rectangle.
+    Si rectMode('corners') x,y sont les coordonnées du coin haut gauche.
+    Le rectangle est rempli par la couleur définie par fill(couleur).\n
+    paramètres optionnels :\n
+    fill = couleur de remplissage prend le dessus sur fill()\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du contour prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du fond quand la souris est dessus\n
+    border_rounded = n arrondi les bords de la boite avec un rayon de n pixels
+    command : nom de la fonction à appeler si le carré est cliqué\n
+    name : valeur passée à la fonction désignée par command\n
+    image = de fond\n
+    Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée
+    aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées).
+    largeur et/ou hauteur seront alors celle de l'image. Les paramètres allign_h (left, center et right) et
+    allign_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
+    """
     processing.rect(x, y, largeur, largeur, **kwargs)
 
 
@@ -137,10 +194,19 @@ def point(x: int, y: int):
 
 
 def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
-    """Trace un segment reliant les deux points de coordonnées (x1, y1) et (x2, y2)."""
+    """Trace un segment reliant les deux points de coordonnées (x1, y1) et (x2, y2).
+    paramètres optionnels :
+    stroke : couleur du trait
+    stroke_weight : largeur du trait
+    fill_mouse_on : couleur du trait quand la souris est dessus
+    arrow_start : si True pointe de fléche au début
+    arrow_end : si True point de flèche à la fin
+    command : nom de la fonction à appeler si les trait est cliqué
+    name : valeur passée à la fonction désignée par command"""
     stroke = kwargs.get("stroke", processing.__border_color)
     points = [(x1, y1), (x2, y2)]
     points = processing.transformation(points)
+    stroke_weight = kwargs.get("stroke_weight", processing.__border_width)
     fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
     arrow_start = kwargs.get("arrow_start", False)
     arrow_end = kwargs.get("arrow_end", False)
@@ -153,7 +219,7 @@ def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
             else:
                 command()
         stroke = fill_mouse_on
-    pygame.draw.line(processing.screen, stroke, *points, processing.__border_width)
+    pygame.draw.line(processing.screen, stroke, *points, stroke_weight)
     if arrow_start:
         angle = trigo.atan2(y2 - y1, x2 - x1)
         r = processing.rotate(-angle, (x1, y1))
@@ -188,7 +254,16 @@ def get_ellipse_center_mode() -> bool:
 
 def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
     """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
-    et la hauteur prennent les valeurs fixées."""
+    et la hauteur prennent les valeurs fixées.\n
+    L'ellipse est remplie par la couleur définie par fill(couleur).\n
+    paramètres optionnels :\n
+    fill = couleur de remplissage prend le dessus sur fill()\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du contour prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du fond quand la souris est dessus\n
+    command : nom de la fonction à appeler si l'ellipse est cliqué\n
+    name : valeur passée à la fonction désignée par command
+    """
     ellipse_mode = kwargs.get("ellipse_mode", processing.__ellipse_center_mode)
     ellipse_mode = kwargs.get("center_mode", ellipse_mode)
     fill = kwargs.get("fill", processing.get_fill_color())
@@ -212,7 +287,7 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
         if ellipse_mode:
             x -= largeur / 2
             y -= hauteur / 2
-        if no_fill == False:
+        if no_fill is False:
             if fill_mouse_on is not None and in_ellipse(*processing.mouseXY(), x + largeur / 2,
                                                         y + hauteur / 2, largeur, hauteur):
                 if processing.mouse_click_down() and command is not None:
@@ -238,7 +313,16 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
 
 def circle(x: int, y: int, diametre: int, **kwargs):
     """Trace un cercle dont le centre a pour coordonnées (x, y) et dont le diamètre prend la valeur fixée.
-    Idem ellipse((x, y, diametre, diametre)"""
+    Idem ellipse((x, y, diametre, diametre)
+    Le cercle est rempli par la couleur définie par fill(couleur).\n
+    paramètres optionnels :\n
+    fill = couleur de remplissage prend le dessus sur fill()\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du contour prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du fond quand la souris est dessus\n
+    command : nom de la fonction à appeler si le cercle est cliqué\n
+    name : valeur passée à la fonction désignée par command
+    """
     ellipse_mode = kwargs.get("ellipse_mode", processing.__ellipse_center_mode)
     ellipse_mode = kwargs.get("center_mode", ellipse_mode)
     fill = kwargs.get("fill", processing.get_fill_color())
@@ -290,7 +374,15 @@ def circle(x: int, y: int, diametre: int, **kwargs):
 
 
 def triangle(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, **kwargs):
-    """Trace un triangle dont les trois sommets ont pour coordonnées (x1, y1), (x2, y2), et (x3, y3)."""
+    """Trace un triangle dont les trois sommets ont pour coordonnées (x1, y1), (x2, y2), et (x3, y3).
+    Le triangle est rempli par la couleur définie par fill(couleur).
+    paramètres optionnels :
+    fill = couleur de remplissage prend le dessus sur fill()
+    stroke : couleur du contour prend le dessus sur stroke()
+    stroke_weight : largeur du trait prend le dessus sur strokeWeight()
+    fill_mouse_on : couleur du fond quand la souris est dessus
+    command : nom de la fonction à appeler si le triangle est cliqué
+    name : valeur passée à la fonction désignée par command"""
     points = [(x1, y1), (x2, y2), (x3, y3)]
     polygone(points, **kwargs)
 
@@ -302,7 +394,15 @@ def quad(x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, x4: int, y4: int,
 
 
 def polygone(points: list, **kwargs):
-    """Trace un polygone à partie d'une liste de points"""
+    """Trace un polygone à partie d'une liste de points\n
+    Le polygone est rempli par la couleur définie par fill(couleur).\n
+    paramètres optionnels :\n
+    fill = couleur de remplissage prend le dessus sur fill()\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du trait prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du fond quand la souris est dessus\n
+    command : nom de la fonction à appeler si le polygone est cliqué\n
+    name : valeur passée à la fonction désignée par command"""
     points = processing.transformation(points)
     fill = kwargs.get("fill", processing.get_fill_color())
     no_fill = kwargs.get("no_fill", processing.__no_fill)
@@ -322,46 +422,68 @@ def polygone(points: list, **kwargs):
             pygame.draw.polygon(processing.screen, stroke,
                                 points, width=stroke_weight)
     else:
-        if fill_mouse_on is None:
-            pygame.draw.polygon(processing.screen, fill,
-                                points)
-        else:
-            if processing.in_polygone(*processing.mouseXY(), points):
-                if ((not click_up and processing.mouse_click_down()) or (
-                        click_up and processing.mouse_click_up())) and command is not None:
-                    if name is not None:
-                        command(name)
-                    else:
-                        command()
-                pygame.draw.polygon(processing.screen, fill_mouse_on,
-                                    points)
-            else:
+        if processing.in_polygone(*processing.mouseXY(), points):
+            if ((not click_up and processing.mouse_click_down()) or (
+                    click_up and processing.mouse_click_up())) and command is not None:
+                if name is not None:
+                    command(name)
+                else:
+                    command()
+            if fill_mouse_on is None:
                 pygame.draw.polygon(processing.screen, fill,
                                     points)
+            else:
+                pygame.draw.polygon(processing.screen, fill_mouse_on,
+                                    points)
+        else:
+            pygame.draw.polygon(processing.screen, fill,
+                                points)
         if stroke_weight != 0:
             pygame.draw.polygon(processing.screen, stroke,
                                 points, width=stroke_weight)
 
 
-def not_filled_polygone(points: list) -> None:
+def not_filled_polygone(points: list, **kwargs) -> None:
+    """crée un polygone vide.\n
+    paramètres optionnels :\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du trait prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du trait quand la souris est dessus\n
+    command : nom de la fonction à appeler si le polygone est cliqué\n
+    name : valeur passée à la fonction désignée par command"""
     points.append(points[0])
     for i in range(len(points) - 1):
         line(points[i][0] + processing.__dx, points[i][1] + processing.__dy, points[i + 1][0] + processing.__dx,
-             points[i + 1][1] + processing.__dy)
+             points[i + 1][1] + processing.__dy, **kwargs)
 
 
-def k_line(points: list) -> None:
-    """trace un ligne brisée à partir d'une liste de points
-    [[1,2],[5,6],[8,3],.....]
-    nb_point = nb_segments + 1"""
+def k_line(points: list, **kwargs) -> None:
+    """trace un ligne brisée à partir d'une liste de points\n
+    [[1,2],[5,6],[8,3],.....]\n
+    nb_point = nb_segments + 1\n
+    paramètres optionnels :\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du trait prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du trait quand la souris est dessus\n
+    command : nom de la fonction à appeler si le polygone est cliqué\n
+    name : valeur passée à la fonction désignée par command"""
     for i in range(len(points) - 1):
         line(points[i][0], points[i][1], points[i + 1][0],
-             points[i + 1][1])
+             points[i + 1][1], **kwargs)
 
 
 def arc(x: int, y: int, largeur: int, hauteur: int, angle_debut: float = None, angle_fin: float = None, **kwargs):
     """Créer une portion d'ellipse type part de tarte qui pourra être rempli entre les points repérés par
-    les angles angleDébut et angleFin. x et y sont les coordonnées du centre du cercle."""
+    les angles angleDébut et angle_fin. x et y sont les coordonnées du centre du cercle.
+    L'arc est rempli par la couleur définie par fill(couleur).\n
+    paramètres optionnels :\n
+    fill = couleur de remplissage prend le dessus sur fill()\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du contour prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du fond quand la souris est dessus\n
+    command : nom de la fonction à appeler si l'arc est cliqué\n
+    name : valeur passée à la fonction désignée par command
+    """
     pie = kwargs.get("pie", True)
     ellipse_mode = kwargs.get("ellipse_mode", processing.__ellipse_center_mode)
     # recalcule de x et y si x,y centre de l'ellipse
@@ -393,43 +515,49 @@ def arc(x: int, y: int, largeur: int, hauteur: int, angle_debut: float = None, a
     polygone(points, **kwargs)
 
 
-def circle_arc(x: int, y: int, diametre: int, angleDebut: float, angleFin: float, **kwargs):
-    """idem arc mais à partir d'un disque"""
-    arc(x, y, diametre, diametre, angleDebut, angleFin, **kwargs)
+def circle_arc(x: int, y: int, diametre: int, angle_debut: float, angle_fin: float, **kwargs):
+    """idem arc mais à partir d'un disque
+    L'arc est rempli par la couleur définie par fill(couleur).\n
+    paramètres optionnels :\n
+    fill = couleur de remplissage prend le dessus sur fill()\n
+    stroke : couleur du contour prend le dessus sur stroke()\n
+    stroke_weight : largeur du contour prend le dessus sur strokeWeight()\n
+    fill_mouse_on : couleur du fond quand la souris est dessus\n
+    command : nom de la fonction à appeler si l'ellipse est cliqué\n
+    name : valeur passée à la fonction désignée par command
+    """
+    arc(x, y, diametre, diametre, angle_debut, angle_fin, **kwargs)
 
 
-def arc_points(x: int, y: int, largeur: int, hauteur: int, angleDebut: float, angleFin: float, sens_trigo=True) -> list:
+def arc_points(x: int, y: int, largeur: int, hauteur: int, angle_debut: float, angle_fin: float, sens_trigo=True) -> list:
     """retourne une liste des points du contour de l'ellipse entre les points repérés par
-    les angles angleDébut et angleFin (en radians). x et y sont les coordonnées du centre du cercle."""
-    # recalcule de x et y si x,y centre de l'ellipse
-    if not processing.__ellipse_center_mode:
-        x += largeur / 2
-        y += hauteur / 2
+    les angles angleDébut et angle_fin (en radians). x et y sont les coordonnées du centre du cercle.
+    permet de créer des polygones de forme compliquée"""
 
-    # conversion des angle en radians
-    angleDebut *= trigo.angleMode()
-    angleFin *= trigo.angleMode()
+    # conversion des angles en radians
+    angle_debut = trigo.radians(angle_debut)
+    angle_fin = trigo.radians(angle_fin)
     points = []
 
     # calcul des points de l'arc
     pas = 0.1
-    if angleDebut > angleFin and sens_trigo:
-        angleFin += 2 * processing.PI
+    if angle_debut > angle_fin and sens_trigo:
+        angle_fin += 2 * processing.PI
     if not sens_trigo:
         pas = -pas
-    angle = angleDebut
+    angle = angle_debut
     if pas > 0:
-        while angle < angleFin - pas:
-            points.append((largeur * math.cos(angle) / 2 + processing.__dx + x,
-                           -hauteur * math.sin(angle) / 2 + processing.__dy + y))
+        while angle < angle_fin - pas:
+            points.append((largeur * math.cos(angle) / 2 + x,
+                           -hauteur * math.sin(angle) / 2 + y))
             angle += pas
     else:
-        while angle > angleFin - pas:
-            points.append((largeur * math.cos(angle) / 2 + processing.__dx + x,
-                           -hauteur * math.sin(angle) / 2 + processing.__dy + y))
+        while angle > angle_fin - pas:
+            points.append((largeur * math.cos(angle) / 2 + x,
+                           -hauteur * math.sin(angle) / 2 + y))
             angle += pas
-    points.append((largeur * math.cos(angleFin) / 2 + processing.__dx + x,
-                   -hauteur * math.sin(angleFin) / 2 + processing.__dy + y))
+    points.append((largeur * math.cos(angle_fin) / 2 + x,
+                   -hauteur * math.sin(angle_fin) / 2 + y))
     return points
 
 

@@ -1,8 +1,7 @@
 import pygame
-
+import os
 from likeprocessing.pyDialog import *
 import math
-
 
 HALF_PI = math.pi / 2
 PI = math.pi
@@ -54,7 +53,7 @@ aliens = None
 screen = pygame.display.set_mode((300, 200), pygame.RESIZABLE)
 Boite.init(screen)
 __rotation = 0
-__axis = (0,0)
+__axis = (0, 0)
 __flip_axe_v = None
 __flip_axe_h = None
 __print_x = 5
@@ -63,27 +62,42 @@ __print_ligne = [25]
 __scale = 1
 __resizable = 0
 __resized = False
-__print_console=[]
+__print_console = []
+__path = ""
+__quit_cross_enabled = True
+for p in sys.path:
+    if "site-packages" in p and p[-13:] == "site-packages":
+        __path = p + "\\likeprocessing\\"
+    if not os.path.exists(__path):
+        __path = ".\\likeprocessing\\"
+
 ihm = []
 from random import randint
 from likeprocessing.affichage import *
 from likeprocessing.transformation import *
 from pygame.locals import *
 from likeprocessing.formes import *
-from likeprocessing.tempos import Tempo
+from likeprocessing.tempos import Tempo, Monostable, Pwm
 from likeprocessing.images import *
 from likeprocessing.texte import *
 from likeprocessing.print_vars import print_var
+from likeprocessing.tor import Tor
 
 def set_debug(valeur):
     processing.debug = valeur
+
 
 def debuger():
     if processing.debug:
         print("debug")
 
+
 def get_font():
     return __font
+
+
+def get_path():
+    return __path.replace("\\", "/")
 
 
 def set_font(font: str):
@@ -136,27 +150,59 @@ def height():
 def size(largeur: int, hauteur: int):
     """initialise les dimensions de l'écran"""
     processing.__width, processing.__height = largeur, hauteur
-    processing.screen = pygame.display.set_mode((largeur, hauteur),processing.__resizable)
+    processing.screen = pygame.display.set_mode((largeur, hauteur), processing.__resizable)
     pygame.display.set_caption(__title)
 
-def resizable_screen(resizable:bool=True):
+
+def resizable_screen(resizable: bool = True) -> None:
+    """
+    Configure la fenêtre pour qu'elle soit redimensionnable ou non.
+
+    :param resizable: Un booléen indiquant si la fenêtre doit être redimensionnable (True) ou non (False).
+    :type resizable: bool
+    """
     if resizable:
         processing.__resizable = pygame.RESIZABLE
     else:
         processing.__resizable = 0
 
-def createCanvas(largeur: int, hauteur: int, resizable:bool = False):
-    """creer une fenêtre de taille largeur*hauteur"""
+
+def createCanvas(largeur: int, hauteur: int, resizable: bool = False,**kwargs) -> None:
+    """
+    Crée une fenêtre de taille largeur x hauteur.
+
+    :param largeur: La largeur de la fenêtre en pixels.
+    :type largeur: int
+    :param hauteur: La hauteur de la fenêtre en pixels.
+    :type hauteur: int
+    :param resizable: Un booléen indiquant si la fenêtre doit être redimensionnable (True) ou non (False). False par défaut.
+    :type resizable: bool
+    """
+    icone  = kwargs.get("icone", None)
+    if icone is not None:
+        set_icone(icone)
     resizable_screen(resizable)
     size(largeur, hauteur)
 
 
-def title(titre: str):
-    """change le titre de la fenêtre"""
+def title(titre: str) -> None:
+    """
+    Change le titre de la fenêtre.
+
+    :param titre: Le nouveau titre de la fenêtre.
+    :type titre: str
+    """
     global __title
-    __title = titre
+    __title = str(titre)
     pygame.display.set_caption(__title)
 
+def set_icone(icone:Union[Image,str]):
+    """modifie l'icône de la fenêtre de l'application"""
+    if isinstance(icone, str):
+        icone = loadImage(icone)
+    if isinstance(icone, Image):
+        icone = resize_image(icone, (32, 32))
+        pygame.display.set_icon(icone)
 
 def save_background():
     """fait une copie du contenu de la fenetre"""
@@ -164,45 +210,84 @@ def save_background():
     __background_image = screen.copy()
 
 
-def draw_background():
-    """dessine le background de la fenêtre"""
+def reset_background() -> None:
+    """
+    supprime l'image de fond __background_image`.
+    """
+    global __background_image
+    __background_image = None
+
+
+def draw_background() -> None:
+    """
+    Dessine le fond de la fenêtre.
+
+    Si une image de fond a été enregistrée avec `save_background`, cette image est dessinée sur la fenêtre.
+    Sinon, la couleur de fond par défaut est utilisée pour remplir la fenêtre.
+    """
     if type(__background_image) is pygame.Surface:
         screen.blit(__background_image, (0, 0))
     else:
         screen.fill(__background_color)
 
 
-def keys() -> [bool]:
-    """l'etat des touches du clavier"""
-    return pygame.key.get_pressed()
+def keys() -> list[bool]:
+    """
+    Renvoie l'état de toutes les touches du clavier.
+
+    Retourne une liste de booléens où chaque élément correspond à une touche du clavier.
+    Si la touche est enfoncée, la valeur correspondante dans la liste est True, sinon False.
+    """
+    return list(pygame.key.get_pressed())
 
 
 def keyIsPressed() -> bool:
-    """retourne True si une touche du clavier est pressée """
+    """
+    Renvoie True si une touche du clavier est enfoncée.
+
+    La fonction utilise une variable interne "__key_pressed" qui est mise à jour
+    à chaque tour de boucle pour indiquer si une touche est actuellement enfoncée.
+    """
     return __key_pressed
 
 
-def isKeyPressed():
-    """retourne True si une touche du clavier est pressée """
+def isKeyPressed() -> bool:
+    """
+    Renvoie True si une touche du clavier est enfoncée.
+
+    La fonction utilise une variable interne "__key_pressed" qui est mise à jour
+    à chaque tour de boucle pour indiquer si une touche est actuellement enfoncée.
+    """
     return __key_pressed
 
 
-def keyIsDown(code) -> bool:
-    """retourne True si une touche(code) est pressée """
+def keyIsDown(code: int) -> bool:
+    """
+    Renvoie True si la touche correspondante au code donné est enfoncée.
+
+    La fonction utilise la méthode "get_pressed" de la classe "pygame.key" pour
+    récupérer l'état actuel de toutes les touches du clavier. Elle compare ensuite
+    la valeur correspondante à la touche spécifiée par son code pour déterminer si elle est enfoncée.
+    """
     return pygame.key.get_pressed()[code] == True
 
 
-def frameCount():
-    """retourne le nombre de boucle effectuée depuis le lancement du programme"""
+def frameCount() -> int:
+    """
+    Renvoie le nombre de tours de boucle effectués depuis le début du programme.
+
+    La variable "__frameCount" est mise à jour automatiquement à chaque tour de boucle.
+    """
     return processing.__frameCount
 
 
-def mouseIsPressed():
+
+def mouseIsPressed() -> bool:
     """retourne True si une touche de la souris est appuyée"""
     return __click
 
 
-def mouse_button_pressed():
+def mouse_button_pressed() -> int:
     """retourne le numero de la touche de la souris qui est appuyée 0,1 ou 2
     -1 si aucune touche est enfoncée"""
     boutons = pygame.mouse.get_pressed()
@@ -212,28 +297,28 @@ def mouse_button_pressed():
     return -1
 
 
-def mouse_click_up():
+def mouse_click_up()->bool:
     """return True when the mouse button move down to up for one loop only """
     return processing.__click_up
 
 
-def mouse_click_down():
+def mouse_click_down()->bool:
     """return True when the mouse button move up to down for one loop only """
     return processing.__click_down
 
 
-def mouse_click():
+def mouse_click()->bool:
     """return True if mouse button is down"""
     return processing.__click
 
 
-def mouse_wheel_state():
-    """return 1 if wheel turn up -1 if wheel turn down and 0 if not turn"""
+def mouse_wheel_state() -> int:
+    """Return 1 if the mouse wheel is turned up, -1 if the mouse wheel is turned down, and 0 if it is not turned."""
     return processing.__mouse_wheel
 
 
-def redraw():
-    """force le redessin de l'écran"""
+def redraw() -> None:
+    """Force the screen to be redrawn."""
     pygame.display.update()
 
 
@@ -241,17 +326,9 @@ def events() -> list:
     return processing.__events
 
 
-def quitter(value=None):
-    global __quitter
-    if value is None:
-        return __quitter
-    elif value is False:
-        __quitter = False
-
-
 def run(globales):
     global __key_pressed, __click, __click_down, __click_up, keys, __quitter, var_globales, __frameCount, clock, secondes
-    global __tempo_seconde, __tempo_centieme, centiemes, __events,__mouse_wheel,__resized
+    global __tempo_seconde, __tempo_centieme, centiemes, __events, __mouse_wheel, __resized, __quit_cross_enabled
     successes, failures = pygame.init()
     print("{0} successes and {1} failures".format(successes, failures))
     clock = pygame.time.Clock()
@@ -261,11 +338,8 @@ def run(globales):
         clock.tick(__fps)
         __events = pygame.event.get()
         for event in __events:
-            if event.type == pygame.QUIT:
-                if globales.get('quit'):
-                    __quitter = True
-                else:
-                    quit()
+            if event.type == pygame.QUIT and __quit_cross_enabled is True:
+                __quitter = True
             elif event.type == pygame.KEYDOWN:
                 __key_pressed = True
             elif event.type == pygame.KEYUP:
@@ -287,38 +361,57 @@ def run(globales):
             globales['scan_event']()
         if globales.get('compute'):
             globales['compute']()
+
         if globales.get('draw_object'):
             globales['draw_object']()
         if globales.get('draw'):
             if __no_loop is False or (__no_loop is True and __frameCount == 0):
+                Tor.reset_front()
                 draw_background()
                 globales['draw']()
                 reset()
         if __quitter:
-            globales['quit']()
+            if globales.get('exit'):
+                globales['exit']()
+            if __quitter:
+                quit()
+
         pygame.display.update()  # Or pygame.display.flip()
         __frameCount += 1
         __click_down = False
         __click_up = False
         __mouse_wheel = 0
         __resized = False
+
+def get_mouse_wheel()->int:
+    """
+
+    :rtype: int
+    """
+    return processing.__mouse_wheel
+
 def set_click(value):
     global __click
     __click = value
 
+
 def get_click():
     return processing.__click
+
 
 def set_click_down(value):
     global __click_down
     __click_down = value
 
+
 def set_click_up(value):
     global __click_up
     __click_up = value
 
+
 def get_resized():
     return processing.__resized
+
 
 def set_axis(axe: tuple):
     """initialise la valeur de l''axe de rotation"""
@@ -465,11 +558,44 @@ def get_rect_center_mode() -> bool:
 
 
 def set_scale(echelle: [int, float]):
+    """ set scale parameter"""
     processing.__scale = echelle
 
 
 def get_scale():
+    """return scale parameter"""
     return processing.__scale
 
+
 def get_background_color():
+    """return background color"""
     return processing.__background_color
+
+
+def get_background_image():
+    """return background image"""
+    return processing.__background_image
+
+
+def set_background_image(image: Image):
+    """set background image"""
+    processing.__background_image = image
+
+def get_quit():
+    """get __quitter"""
+    return processing.__quitter
+
+def set_quit(value:bool):
+    """set __quitter (True or False)"""
+    processing.__quitter = value
+
+def disabled_quit_cross():
+    """disabled quit cross of windows"""
+    processing.__quit_cross_enabled = False
+
+def enabled_quit_cross():
+    """enabled quit cross of windows"""
+    processing.__quit_cross_enabled = True
+
+def borner(valeur : [int,float],borne_mini: [int,float],borne_maxi: [int,float] )->[int,float]:
+    return max(borne_mini, min(valeur, borne_maxi))
