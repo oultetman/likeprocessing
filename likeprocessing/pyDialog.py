@@ -81,7 +81,7 @@ class Boite(pygame.Rect):
             self.fill = None
         if kwargs.get('no_stroke', False):
             self.stroke_weight = 0
-        self._visible = True
+        self._visible = kwargs.get('visible', True)
         # if isinstance(self.parent, Dialog) and self.parent.cadre:
         # if not isinstance(self.parent, pygame.Rect):
         try:
@@ -135,6 +135,29 @@ class Boite(pygame.Rect):
                 self.x = 2
                 self.height = self.parent.height - 4
                 self.y = 2
+
+    @property
+    def disabled(self) -> bool:
+        """
+        Renvoie si la boîte est désactivée
+
+        Returns:
+            bool: True si la boîte est désactivée, False sinon.
+        """
+        return self.is_disabled
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        """
+        Modifie l'activation de la boîte.
+
+        Args:
+            value (bool): La nouvelle valeur de l'activation'.
+
+        Returns:
+            None
+        """
+        self.is_disabled = value
 
     @property
     def visible(self) -> bool:
@@ -1016,6 +1039,10 @@ class Bouton(Boite):
         self.filled = kwargs.get("fill", None)
         super().__init__(parent, rect, **kwargs)
         self.fonction = kwargs.get("command", None)
+        cmo = kwargs.get("command_mouse_over", None)
+        if not isinstance(cmo,tuple):
+            cmo = (cmo, None)
+        self.fonction_mouse_over, self.fonction_mouse_over_off = cmo
         self.mouseOn = False
         self.mouseClick = False
         self.texte = MultiLineText(self, (2, 2, self.width - 4, self.height - 4), texte, **kwargs)
@@ -1036,6 +1063,24 @@ class Bouton(Boite):
         self._focus = value
         if not self.focus:
             self.mouseOn = False
+
+    @property
+    def disabled(self):
+        return self.disabled
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        self.is_disabled = value
+        self.texte.disabled = value
+
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self, value: bool):
+        self._visible = value
+        self.texte._visible = value
 
     def setX(self, value: int):
         self.x = value
@@ -1128,6 +1173,18 @@ class Bouton(Boite):
             else:
                 self.mouseOn = False
                 self.focus = False
+            if self.fonction_mouse_over is not None:
+                if self.mouseOn is True:
+                    if self.name is None:
+                        self.fonction_mouse_over()
+                    else:
+                        self.fonction_mouse_over(self.name)
+                else:
+                    if self.fonction_mouse_over_off is not None:
+                        if self.name is None:
+                            self.fonction_mouse_over_off()
+                        else:
+                            self.fonction_mouse_over_off(self.name)
             if click is False and self.mouseClick is True:
                 self.mouseClick = False
                 if self.mouseOn is True and self.fonction is not None:
@@ -1173,7 +1230,8 @@ class Dialog(Boite):
             # self.stroke_weight = 0
             kwargs["no_stroke"] = True
             titre = Label(self, (7, 1, 0, 0), kwargs["title"], **kwargs)
-            self.addObjet(Boite(self, (0, titre.height//2, self.width, self.height - titre.h//2), fill=self.fill), "frame_cadre")
+            self.addObjet(Boite(self, (0, titre.height // 2, self.width, self.height - titre.h // 2), fill=self.fill),
+                          "frame_cadre")
             self.addObjet(titre, "frame_title")
             self.decy = self.objet_by_name("frame_title").height + 1
 
@@ -1261,7 +1319,7 @@ class Dialog(Boite):
         """modifie la hauteur de la boite de dialogue"""
         self.height = value
         if self.frame:
-            self.objet['frame_cadre'].height = self.height - self.objet["frame_title"].height//2
+            self.objet['frame_cadre'].height = self.height - self.objet["frame_title"].height // 2
         self.repack()
 
     def repack(self):
@@ -1487,7 +1545,7 @@ class Dialog(Boite):
                     self.objet_focus = False
                 else:
                     self.start_drop = None
-            #t
+            # t
             mouse_on_dialog = False
             for o in self.objet.values():
                 if o.visible:
@@ -1510,12 +1568,12 @@ class Dialog(Boite):
             if not self.modale and mouse_on_dialog is False:
                 # try:
                 objets = list(self.objet.keys())
-                #test
+                # test
                 # fin test
                 for k in objets:
                     o: Boite = self.objet.get(k)
                     if o is not None and o.visible:
-                        if isinstance(o,Dialog) and o.collidepoint(x,y):
+                        if isinstance(o, Dialog) and o.collidepoint(x, y):
                             mouse_on_dialog = True
                         if o == self.objet.get('title_box') and (
                                 o.collidepoint(x, y) or self.start_drop is not None) and click:
@@ -1595,12 +1653,12 @@ class Dialog(Boite):
         """
         if name == "all":
             for o in self.objet.values():
-                o.is_disabled = True
+                o.disabled = True
         elif isinstance(name, list):
             for o in name:
-                self.objet[o].is_disabled = True
+                self.objet[o].disabled = True
         else:
-            self.objet_by_name(name).is_disabled = True
+            self.objet_by_name(name).disabled = True
 
     def enabled(self, name: Union[str, List[str]]) -> None:
         """
@@ -1615,12 +1673,12 @@ class Dialog(Boite):
         """
         if name == "all":
             for o in self.objet.values():
-                o.is_disabled = False
+                o.disabled = False
         elif isinstance(name, list):
             for o in name:
-                self.objet[o].is_disabled = False
+                self.objet[o].disabled = False
         else:
-            self.objet_by_name(name).is_disabled = False
+            self.objet_by_name(name).disabled = False
 
     def visibled(self, name: Union[str, List[str]]) -> None:
         """
@@ -1721,6 +1779,7 @@ class IhmScreen(Dialog):
         self.modale = False
         self.objet_by_name(object_name).visible = False
 
+
 class Painter(Boite):
     """Crée une boite de dessin qui pourra se placer dans un boite de dialogue
     afin de pouvoir utiliser les fonctions forme de likeprocessing en surchargeant la méthode
@@ -1755,12 +1814,13 @@ class Painter(Boite):
     def draw(self):
         super().draw()
         pos = processing.translate(self.absolute().x, self.absolute().y)
-        self.draw_paint(self)
+        self.draw_paint()
         processing.init_translate(*pos)
 
     @staticmethod
     def draw_paint(self):
         pass
+
 
 class ListRadio(Dialog):
     def __init__(self, parent, rect, list_items: list, **kwargs):

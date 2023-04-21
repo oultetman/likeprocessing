@@ -440,7 +440,7 @@ rect(150,100,100,60,fill= "blue",border_rounded = 10) # rectangle au coins arron
 ```
 
 
-l'ajout de **command = ma_fonction** au paramètre **fill_mouse_on="couleur"** permet d'exécuter la fonction **ma_fonction()**. Si l'on veut attribuer **ma_fonction** à plusieurs formes il est possible d'ajouter le paramètre **name = valeur**. Dans ce cas, la fonction **ma_fonction(name)** sera exécutée . Il faudra créer impérativement soit : 
+l'ajout de **command = ma_fonction** ou **command_mouse_over = ma_fonction** au paramètre **fill_mouse_on="couleur"** permet d'exécuter la fonction **ma_fonction()**. Si l'on veut attribuer **ma_fonction** à plusieurs formes il est possible d'ajouter le paramètre **name = valeur**. Dans ce cas, la fonction **ma_fonction(name)** sera exécutée . Il faudra créer impérativement soit : 
 
 def ma_fonction():
 
@@ -452,6 +452,9 @@ def ma_fonction(nom):
 
     pass
 
+Remarque:<br>
+avec le paramètre command exécute la fonction si la forme est cliquée alors qu'avec command_mous_over elle sera exécutée simplement si la souris est sur la forme.<br>
+Si les deux paramètres sont présents les deux fonctions sont exécutées.
 
 ## Textes
 
@@ -1295,6 +1298,6 @@ ihm.addObjet(Bouton(ihm, (0, 0, 100, 0), "Quitter",
 
  
 
-**Remarque **: on peut rendre si nécessaire la croix de la fenêtre likeprocessing inactive avec la fonction  **disabled_quit_cross(). **La fonction** enabled_quit_cross()** permet de la réactivée.
+**Remarque**: on peut rendre si nécessaire la croix de la fenêtre likeprocessing inactive avec la fonction  **disabled_quit_cross(). **La fonction** enabled_quit_cross()** permet de la réactivée.
 
  

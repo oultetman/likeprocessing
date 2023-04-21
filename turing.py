@@ -212,7 +212,7 @@ def setup():
     textAlign("center", "center")
     img = loadImage("fantome_jaune.png")
     ihm.init()
-    ihm.addObjet(Bouton(None, (20, 20, 45, 20), 'Run', command=marche,no_fill=True), "run")
+    ihm.addObjet(Bouton(None, (20, 20, 45, 20), 'Run', command=marche,no_fill=True, command_mouse_over=lambda : print("run")), "run")
     ihm.addObjet(Bouton(None, (70, 20, 45, 20), 'stop', command=arret), 'stop')
     ihm.addObjet(Bouton(None, (20, 45, 45, 20), 'rotation', command=init), 'rotation')
     ihm.addObjet(LineEdit(None, (70, 45, 45, 20), "0"), "pos_init")

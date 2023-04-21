@@ -5,29 +5,34 @@ import likeprocessing.trigo as trigo
 import pygame
 
 
-def in_polygone(x, y, points: list) -> bool:
-    """retourne True si le point (x,y) est dans le polygone"""
-    segment = []
-    for i in range(0, len(points) - 1):
-        if (points[i][0] >= x or points[i + 1][0] >= x) and (
-                points[i][1] < y < points[i + 1][1] or points[i][1] > y > points[i + 1][1]):
-            segment.append((points[i], points[i + 1]))
-    if (points[0][0] >= x or points[-1][0] >= x) and (
-            points[0][1] < y < points[-1][1] or points[0][1] > y > points[-1][1]):
-        segment.append((points[0], points[-1]))
-    if len(segment) % 2 == 1:
-        return True
-    else:
-        nb = 0
-        for s in segment:
-            if (s[1][0] - s[0][0]) != 0:
-                a = (s[1][1] - s[0][1]) / (s[1][0] - s[0][0])
-                b = s[1][1] - a * s[1][0]
-                if (y - b) / a >= x:
-                    nb += 1
-            else:
-                nb += 1
-        return nb % 2 == 1
+def in_polygone(x, y, points:list):
+    """
+    Vérifie si un point donné se trouve à l'intérieur d'un polygone donné.
+
+    Args:
+        point (tuple): Les coordonnées du point à tester sous la forme (x, y).
+        points (list): Une liste de tuples contenant les coordonnées des sommets du polygone.
+
+    Returns:
+        bool: True si le point se trouve à l'intérieur du polygone, False sinon.
+    """
+
+    n = len(points)
+    inside = False
+
+    p1x, p1y = points[0]
+    for i in range(1, n+1):
+        p2x, p2y = points[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        x_intersect = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= x_intersect:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
 
 
 def in_line(x, y, x1, y1, x2, y2) -> bool:
@@ -83,13 +88,13 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     image = de fond
     Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée
     aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées).
-    largeur et/ou hauteur seront alors celle de l'image. Les paramètres allign_h (left, center et right) et
-    allign_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
+    largeur et/ou hauteur seront alors celle de l'image. Les paramètres align_h (left, center et right) et
+    align_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
      """
 
     image: pygame.surface = kwargs.get("image", None)
-    allign_h = kwargs.get("allign_h", "left")
-    allign_v = kwargs.get("allign_v", "top")
+    align_h = kwargs.get("align_h", "left")
+    align_v = kwargs.get("align_v", "top")
     rect_mode = kwargs.get("rect_mode", processing.__rect_center_mode)
     rect_mode = kwargs.get("center_mode", rect_mode)
     border_rounded = kwargs.get("border_rounded", 0)
@@ -129,15 +134,15 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     if image is not None:
         dx = 0  # left
         dy = 0  # top
-        if allign_h == "left":
+        if align_h == "left":
             dx = 0
-        elif allign_h == "right":
+        elif align_h == "right":
             dx = max(0, largeur - image.get_width())
-        elif allign_h == "center":
+        elif align_h == "center":
             dx = max(0, (largeur - image.get_width()) // 2)
-        if allign_v == "center":
+        if align_v == "center":
             dy = max(0, (hauteur - image.get_height()) // 2)
-        elif allign_v == "bottom":
+        elif align_v == "bottom":
             dy = max(0, hauteur - image.get_height())
         r = processing.get_rotation_rad() * 180 / math.pi
         img = pygame.transform.rotate(image, r)
@@ -156,6 +161,8 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
         if processing.in_polygone(*processing.mouseXY(), points):
             fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
             if fill_mouse_on is not None:
+                if isinstance(fill_mouse_on, str):
+                    fill_mouse_on = processing.rgb_color(fill_mouse_on)
                 fill_mouse_on = list(fill_mouse_on)[:3] + [127]
                 lx, ly = zip(*points)
                 min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
@@ -181,8 +188,8 @@ def square(x: int, y: int, largeur: int, **kwargs):
     image = de fond\n
     Si le paramètre image est renseigné le fond du rectangle sera occupé pas l'image retaillée
     aux dimensions du rectangle sauf si largeur et/ou hauteur sont nulles (ou non renseignées).
-    largeur et/ou hauteur seront alors celle de l'image. Les paramètres allign_h (left, center et right) et
-    allign_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
+    largeur et/ou hauteur seront alors celle de l'image. Les paramètres align_h (left, center et right) et
+    align_v (top,center et bottom) permettent d'aligner l'image dans un cadre plus grand qu'elle.
     """
     processing.rect(x, y, largeur, largeur, **kwargs)
 
@@ -211,6 +218,7 @@ def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
     arrow_start = kwargs.get("arrow_start", False)
     arrow_end = kwargs.get("arrow_end", False)
     command = kwargs.get("command", None)
+    command_mouse_over = kwargs.get("command_mouse_over", None)
     name = kwargs.get("name", None)
     if fill_mouse_on is not None and in_line(*processing.mouseXY(), *points[0], *points[1]):
         if processing.mouse_click_down() and command is not None:
@@ -218,6 +226,11 @@ def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
                 command(name)
             else:
                 command()
+        if command_mouse_over is not None:
+            if name is not None:
+                command_mouse_over(name)
+            else:
+                command_mouse_over()
         stroke = fill_mouse_on
     pygame.draw.line(processing.screen, stroke, *points, stroke_weight)
     if arrow_start:
@@ -273,6 +286,7 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
     fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
     no_stoke = kwargs.get("no_stroke", False)
     command = kwargs.get("command", None)
+    command_mouse_over = kwargs.get("command_mouse_over", None)
     name = kwargs.get("name", None)
     if processing.__scale != 1:
         largeur *= processing.__scale
@@ -295,6 +309,11 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
                         command(name)
                     else:
                         command()
+                if command_mouse_over is not None:
+                    if name is not None:
+                        command_mouse_over(name)
+                    else:
+                        command_mouse_over()
                 pygame.draw.ellipse(processing.screen, fill_mouse_on,
                                     (x + processing.__dx, y + processing.__dy, largeur, hauteur),
                                     0)
@@ -332,6 +351,7 @@ def circle(x: int, y: int, diametre: int, **kwargs):
     fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
     no_stoke = kwargs.get("no_stroke", False)
     command = kwargs.get("command", None)
+    command_mouse_over = kwargs.get("command_mouse_over", None)
     name = kwargs.get("name", None)
     if processing.__scale != 1:
         diametre *= processing.__scale
@@ -360,6 +380,11 @@ def circle(x: int, y: int, diametre: int, **kwargs):
                     command(name)
                 else:
                     command()
+            if command_mouse_over is not None:
+                if name is not None:
+                    command_mouse_over(name)
+                else:
+                    command_mouse_over()
             pygame.draw.ellipse(processing.screen, fill_mouse_on,
                                 (x, y, diametre, diametre),
                                 0)
@@ -411,6 +436,7 @@ def polygone(points: list, **kwargs):
     fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
     no_stroke = kwargs.get("no_stroke", False)
     command = kwargs.get("command", None)
+    command_mouse_over = kwargs.get("command_mouse_over", None)
     name = kwargs.get("name", None)
     click_up = kwargs.get("click_up", False)
     if no_stroke is True:
@@ -435,6 +461,10 @@ def polygone(points: list, **kwargs):
             else:
                 pygame.draw.polygon(processing.screen, fill_mouse_on,
                                     points)
+                if name is not None:
+                    command_mouse_over(name)
+                else:
+                    command_mouse_over()
         else:
             pygame.draw.polygon(processing.screen, fill,
                                 points)
