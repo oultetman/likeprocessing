@@ -1017,6 +1017,9 @@ class LineEdit(Boite):
 
 
 class Bouton(Boite):
+    """ TODO Bouton
+    docstring
+    compléter le readme """
     BOUTON_FOND = affichage.rgb_color("white")
     BOUTON_FOND_MOUSE_ON = (200, 241, 251)
     BOUTON_BORD = affichage.rgb_color("gray68")
@@ -1040,7 +1043,7 @@ class Bouton(Boite):
         super().__init__(parent, rect, **kwargs)
         self.fonction = kwargs.get("command", None)
         cmo = kwargs.get("command_mouse_over", None)
-        if not isinstance(cmo,tuple):
+        if not isinstance(cmo, tuple):
             cmo = (cmo, None)
         self.fonction_mouse_over, self.fonction_mouse_over_off = cmo
         self.mouseOn = False
@@ -1247,6 +1250,19 @@ class Dialog(Boite):
             self.objet['close'].connecte(self.quitter)
             self.decy = 25
 
+        self._visible = True
+        self.start_drop = None
+        self.destroy = False
+        self._focus = False
+        self.modale = False
+        self.positionne()
+        self.objet_focus = False
+        self.pack_list = []
+
+    def init(self):
+        self.objet = {}
+        self.destroyed = []
+        self.num_object = 1
         self._visible = True
         self.start_drop = None
         self.destroy = False

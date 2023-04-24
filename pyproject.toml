@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "likeprocessing"
-version = "0.1"
+version = "0.1.7.2.5"
 description = "Like processing library with pygame"
 authors = ["Pierre Lemaitre <oultetman@sfr.fr>"]
 readme = "likeprocessing/README.md"
