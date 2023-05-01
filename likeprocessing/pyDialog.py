@@ -1833,6 +1833,18 @@ class Painter(Boite):
         self.draw_paint()
         processing.init_translate(*pos)
 
+    def mouse_x(self) -> int:
+        """retourne la position x de la souris dans le repère de Painter """
+        return processing.mouseX() - self.absolute().x
+
+    def mouse_y(self) -> int:
+        """retourne la position y de la souris dans le repère de Painter """
+        return processing.mouseY() - self.absolute().y
+
+    def mouse_xy(self) -> tuple[int, int]:
+        """retourne la position (x, y) de la souris dans le repère de Painter """
+        return (self.mouse_x(), self.mouse_y())
+
     @staticmethod
     def draw_paint(self):
         pass

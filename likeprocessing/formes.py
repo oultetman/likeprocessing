@@ -461,10 +461,11 @@ def polygone(points: list, **kwargs):
             else:
                 pygame.draw.polygon(processing.screen, fill_mouse_on,
                                     points)
-                if name is not None:
-                    command_mouse_over(name)
-                else:
-                    command_mouse_over()
+                if command_mouse_over is not None:
+                    if name is not None:
+                        command_mouse_over(name)
+                    else:
+                        command_mouse_over()
         else:
             pygame.draw.polygon(processing.screen, fill,
                                 points)
