@@ -1528,6 +1528,10 @@ class Dialog(Boite):
 
     def draw(self):
         """dessine la boite de dialogue"""
+        try:
+            self.title = self.focus
+        except:
+            pass
         while len(self.destroyed) > 0:
             self.objet.pop(self.destroyed.pop())
         if self._visible:
@@ -1540,7 +1544,7 @@ class Dialog(Boite):
                 obj_focused = None
                 for o in self.objet.values():
                     try:
-                        if o.focus and not o.close:
+                        if o.focus: # suppression de and not o.close
                             obj_focused = o
                     except:
                         pass
@@ -1567,12 +1571,14 @@ class Dialog(Boite):
                 if o.visible:
                     # gestion de boite de dialogue enfant de ihm
                     if isinstance(self, IhmScreen) and isinstance(o, Dialog):
-
-                        if o.collidepoint(x, y) or o.start_drop is not None:
+                        if o.collidepoint(x, y) and processing.mouse_click_down() or o.start_drop is not None:
                             # t
                             mouse_on_dialog = True
                             if click or o.frame or not o.cadre:
+                                if isinstance(self, IhmScreen):
+                                    self.lostFocus()
                                 o.focus = True
+                                o.objet_focus = True
                             affichage.cursor(SYSTEM_CURSOR_ARROW)
                             o.scan_mouse()
                             o.scanKeyboard()
@@ -1626,6 +1632,8 @@ class Dialog(Boite):
 
     def lostFocus(self):
         """gére la perte de focus de la boite de dialogue"""
+        # ajout self
+        # self.focus = False
         for o in self.objet.values():
             if isinstance(o, LineEdit):
                 o.focus = False
@@ -1638,16 +1646,21 @@ class Dialog(Boite):
             else:
                 o.focus = False
 
-    def ajuste(self, margin=10):
+    def ajuste(self, margin=0):
         """ajuste la boite de dialogue à son contenant avec une marge (margin)"""
-        widthmax, heightmax = 0, 0
+        xmini, xmaxi, ymini, ymaxi = 0, 0, 0, 0
+        decy = 0
         for o in self.objet.values():
-            if o.x + o.width > widthmax:
-                widthmax = o.x + o.width
-            if o.y + o.height > heightmax:
-                heightmax = o.y + o.height
-        self.setWidth(widthmax + margin)
-        self.setHeight(heightmax + margin)
+            if o.x<xmini:
+                xmini = o.x
+            if o.right > xmaxi:
+                xmaxi = o.right
+            if o.y<ymini:
+                ymini = o.y
+            if o.bottom>ymaxi:
+                ymaxi = o.bottom
+        self.setWidth(xmaxi-xmini + margin)
+        self.setHeight(ymaxi-ymini + margin + decy+10)
         self.positionne()
 
     def objet_by_name(self, name: [str, int]) -> ["Dialog", Bouton, LineEdit, Label, MultiLineText, TextEdit]:
@@ -1828,10 +1841,19 @@ class Painter(Boite):
         super().__init__(parent, rect)
 
     def draw(self):
+        var_globs = processing.save_global()
+        processing.init_globales()
+        processing.x0, processing.y0 = self.absolute().topleft
+        # pos = processing.translate(self.absolute().x, self.absolute().y)
         super().draw()
-        pos = processing.translate(self.absolute().x, self.absolute().y)
+        s = processing.screen.copy()
+        processing.screen = pygame.Surface((self.width - 1, self.height - 1), pygame.SRCALPHA)
         self.draw_paint()
-        processing.init_translate(*pos)
+        s.blit(processing.screen, self.absolute().topleft)
+        processing.size(processing.width(), processing.height())
+        processing.screen.blit(s, (0, 0))
+        # processing.init_translate(*pos)
+        processing.init_globales(var_globs)
 
     def mouse_x(self) -> int:
         """retourne la position x de la souris dans le repère de Painter """
@@ -1843,7 +1865,7 @@ class Painter(Boite):
 
     def mouse_xy(self) -> tuple[int, int]:
         """retourne la position (x, y) de la souris dans le repère de Painter """
-        return (self.mouse_x(), self.mouse_y())
+        return self.mouse_x(), self.mouse_y()
 
     @staticmethod
     def draw_paint(self):

@@ -13,13 +13,14 @@ def loadImage(fichier: str) -> Image:
     except:
         FileNotFoundError(fichier)
 
-def loadImages(liste_images:list[str],sens=0)->Image:
+
+def loadImages(liste_images: list[str], sens=0) -> Image:
     """Retourne une surface qui est l'assemblage de toutes les images
     de la liste.Si sens = 1 les images sont assemblées verticalement
     et horizontalement si sens =0 """
     w, h = 0, 0
     list_screen_image = []
-    if sens ==1:
+    if sens == 1:
         for i in range(len(liste_images)):
             list_screen_image.append(pygame.image.load(liste_images[i]))
             w = max(w, list_screen_image[i].get_width())
@@ -30,7 +31,7 @@ def loadImages(liste_images:list[str],sens=0)->Image:
             img.blit(list_screen_image[i], (0, h))
             h += list_screen_image[i].get_height()
         return img
-    elif sens==0:
+    elif sens == 0:
         for i in range(len(liste_images)):
             list_screen_image.append(pygame.image.load(liste_images[i]))
             h = max(h, list_screen_image[i].get_height())
@@ -41,7 +42,6 @@ def loadImages(liste_images:list[str],sens=0)->Image:
             img.blit(list_screen_image[i], (w, 0))
             w += list_screen_image[i].get_width()
         return img
-
 
 
 def image(picture, x, y):
@@ -64,10 +64,25 @@ def copy_image(picture: Image, rect=None) -> Image:
         return picture.subsurface(rect)
 
 
+def paste_image(picture: Image, paste_picture: Image, pos=(0, 0)) -> Image:
+    """retourne une copie de picture dont une partie est remplacée par paste_picture à
+    la position pos"""
+    img = picture.copy()
+    img.blit(paste_picture, pos)
+    return img
+
+
 def get_pixel_color(picture: Image, pos: tuple) -> tuple:
     """retourne la valeur de la couleur d'un pixel d'une image (picture)
      sous la forme d'un tuple"""
     return picture.get_at(pos)
 
-def resize_image(picture: Image, size: tuple[int,int]) -> Image:
-    return pygame.transform.smoothscale(picture,size)
+
+def resize_image(picture: Image, size: tuple[int, int]) -> Image:
+    """ redimensionne une image en fonction de size"""
+    return pygame.transform.smoothscale(picture, size)
+
+
+def save_image(picture: Image, file_name: str):
+    """"""
+    pygame.image.save(picture, file_name)

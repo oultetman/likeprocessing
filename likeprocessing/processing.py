@@ -35,6 +35,7 @@ __no_fill = False
 __last_no_fill = False
 __dx = 0
 __dy = 0
+x0, y0 = 0, 0
 __score = 0
 __key_pressed = False
 __quitter = False
@@ -83,6 +84,88 @@ from likeprocessing.texte import *
 from likeprocessing.print_vars import print_var
 from likeprocessing.tor import Tor
 
+def save_global():
+    variables = {}
+    variables["text_style"] = processing.__text_style
+    variables["font"] = processing.__font
+    variables["font_size"] = processing.__font_size
+    variables["font_color"] = processing.__font_color
+    variables["couleur_bord_cadre_texte"] = processing.__couleur_bord_cadre_texte
+    variables["text_align_h"] = processing.__text_align_h
+    variables["text_align_v"] = processing.__text_align_v
+    variables["angle_mode"] = processing.__angle_mode
+    variables["background_color"] = processing.__background_color
+    variables["background_image"] = processing.__background_image
+    variables["border_width"] = processing.__border_width
+    variables["last_border_width"] = processing.__last_border_width
+    variables["fill_color"] = processing.__fill_color
+    variables["last_fill_color"] = processing.__last_fill_color
+    variables["fill_color_mouse_on"] = processing.__fill_color_mouse_on
+    variables["border_color"] = processing.__border_color
+    variables["last_border_color"] = processing.__last_border_color
+    variables["rotation"] = processing.__rotation
+    variables["axis"] = processing.__axis
+    variables["flip_axe_v"] = processing.__flip_axe_v
+    variables["flip_axe_h"] = processing.__flip_axe_h
+    variables["rect_center_mode"] = processing.__rect_center_mode
+    variables["ellipse_center_mode"] = processing.__ellipse_center_mode
+    variables["x0"] = processing.x0
+    variables["y0"] = processing.y0
+    return variables
+
+def init_globales(variables: dict = {}):
+    if len(variables) == 0:
+        processing.__text_style = "NORMAL"
+        processing.__font = 'arial'
+        processing.__font_size = 12
+        processing.__font_color = "black"
+        processing.__couleur_bord_cadre_texte = "black"
+        processing.__text_align_h = "LEFT"
+        processing.__text_align_v = "TOP"
+        processing.__angle_mode = 1
+        processing.__background_color = (0, 0, 0)
+        processing.__background_image = None
+        processing.__border_width = 1
+        processing.__last_border_width = 1
+        processing.__fill_color = (255, 255, 255)
+        processing.__last_fill_color = (255, 255, 255)
+        processing.__fill_color_mouse_on = None
+        processing.__border_color = (0, 0, 0)
+        processing.__last_border_color = (0, 0, 0)
+        processing.__rotation = 0
+        processing.__axis = (0, 0)
+        processing.__flip_axe_v = None
+        processing.__flip_axe_h = None
+        processing.__rect_center_mode = False
+        processing.__ellipse_center_mode = False
+        processing.x0, processing.y0 = 0, 0
+    else:
+        processing.__text_style = variables["text_style"]
+        processing.__font = variables["font"]
+        processing.__font_size = variables["font_size"]
+        processing.__font_color = variables["font_color"]
+        processing.__couleur_bord_cadre_texte = variables["couleur_bord_cadre_texte"]
+        processing.__text_align_h = variables["text_align_h"]
+        processing.__text_align_v = variables["text_align_v"]
+        processing.__angle_mode = variables["angle_mode"]
+        processing.__background_color = variables["background_color"]
+        processing.__background_image = variables["background_image"]
+        processing.__border_width = variables["border_width"]
+        processing.__last_border_width = variables["last_border_width"]
+        processing.__fill_color = variables["fill_color"]
+        processing.__last_fill_color = variables["last_fill_color"]
+        processing.__fill_color_mouse_on = variables["fill_color_mouse_on"]
+        processing.__border_color = variables["border_color"]
+        processing.__last_border_color = variables["last_border_color"]
+        processing.__rotation = variables["rotation"]
+        processing.__axis = variables["axis"]
+        processing.__flip_axe_v = variables["flip_axe_v"]
+        processing.__flip_axe_h = variables["flip_axe_h"]
+        processing.__rect_center_mode = variables["rect_center_mode"]
+        processing.__ellipse_center_mode = variables["ellipse_center_mode"]
+        processing.x0, processing.y0 = variables["x0"], variables["y0"]
+
+
 def set_debug(valeur):
     processing.debug = valeur
 
@@ -93,26 +176,25 @@ def debuger():
 
 
 def get_font():
-    return __font
+    return processing.__font
 
 
 def get_path():
-    return __path.replace("\\", "/")
+    return processing.__path.replace("\\", "/")
 
 
 def set_font(font: str):
-    global __font
-    __font = font
+    processing.__font = font
+
 
 
 def score(valeur: int = None):
-    global __score
     if valeur is None:
-        return __score
+        return processing.__score
     elif valeur == 0:
-        __score = 0
+        processing.__score = 0
     else:
-        __score += valeur
+        processing.__score += valeur
 
 
 def random(mini, maxi=None):
@@ -385,7 +467,6 @@ def run(globales):
 
 def get_mouse_wheel()->int:
     """
-
     :rtype: int
     """
     return processing.__mouse_wheel
@@ -519,9 +600,9 @@ def get_dx() -> [int, float]:
     return processing.__dx
 
 
-def set_dy(tanslation_absole_y: [int, float]):
+def set_dy(tanslation_absolue_y: [int, float]):
     """initialise la translation absolue en y"""
-    processing.__dy = tanslation_absole_y
+    processing.__dy = tanslation_absolue_y
 
 
 def get_dy() -> [int, float]:

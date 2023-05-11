@@ -19,7 +19,7 @@ def in_polygone(x, y, points:list):
 
     n = len(points)
     inside = False
-
+    x, y = x - processing.x0, y - processing.y0
     p1x, p1y = points[0]
     for i in range(1, n+1):
         p2x, p2y = points[i % n]
@@ -37,6 +37,7 @@ def in_polygone(x, y, points:list):
 
 def in_line(x, y, x1, y1, x2, y2) -> bool:
     """retourne True si la souris est sur le trait"""
+    x, y = x - processing.x0, y - processing.y0
     d1 = dist(x, y, x1, y1)
     d2 = dist(x, y, x2, y2)
     d = dist(x1, y1, x2, y2)
@@ -46,6 +47,7 @@ def in_line(x, y, x1, y1, x2, y2) -> bool:
 
 def in_ellipse(x, y, xe, ye, largeur, hauteur) -> bool:
     """retourne True si le point (x,y) est dans l'ellipse"""
+    x, y = x - processing.x0, y - processing.y0
     angle = math.atan2(y - ye, x - xe)
     r = math.sqrt((largeur * math.cos(angle) / 2) ** 2 + (hauteur * math.sin(angle) / 2) ** 2)
     return dist(x, y, xe, ye) < r * 0.95
