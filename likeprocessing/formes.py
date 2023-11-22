@@ -100,6 +100,8 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     rect_mode = kwargs.get("rect_mode", processing.__rect_center_mode)
     rect_mode = kwargs.get("center_mode", rect_mode)
     border_rounded = kwargs.get("border_rounded", 0)
+    margin_left = kwargs.get("margin_left", 0)
+    margin_top = kwargs.get("margin_top", 0)
     if image is not None:
         if hauteur == 0:
             hauteur = image.get_height()
@@ -114,6 +116,7 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
                   [x + largeur, y + hauteur],
                   [x, y + hauteur]]
     else:
+        am = processing.angleMode("rad")
         points = [[x + border_rounded, y],
                   [x + largeur - border_rounded, y]] + \
                  arc_points(x + largeur - border_rounded, y + border_rounded, border_rounded * 2, border_rounded * 2,
@@ -130,12 +133,12 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
                   [x, y + border_rounded]] + \
                  arc_points(x + border_rounded, y + border_rounded, border_rounded * 2, border_rounded * 2,
                             math.pi, math.pi / 2, False)
-
+        processing.angleMode(am)
     # if image is None:
     polygone(points, **kwargs)
     if image is not None:
-        dx = 0  # left
-        dy = 0  # top
+        dx = margin_left  # left
+        dy = margin_top  # top
         if align_h == "left":
             dx = 0
         elif align_h == "right":
@@ -268,8 +271,10 @@ def get_ellipse_center_mode() -> bool:
 
 
 def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
-    """Trace une ellipse dont le centre a pour coordonnées (x, y) et dont la largeur
-    et la hauteur prennent les valeurs fixées.\n
+    """Trace une ellipse.\n
+    Si ellipseMode('center') x et y sont les coordonnées du centre de l'ellipse.\n
+    Si ellipseMode('corners') x,y sont les coordonnées du coin du haut gauche du rectangle contenant l'ellipse.\n
+    et dont la largeur et la hauteur prennent les valeurs fixées.\n
     L'ellipse est remplie par la couleur définie par fill(couleur).\n
     paramètres optionnels :\n
     fill = couleur de remplissage prend le dessus sur fill()\n
@@ -333,8 +338,10 @@ def ellipse(x: int, y: int, largeur: int, hauteur: int, **kwargs):
 
 
 def circle(x: int, y: int, diametre: int, **kwargs):
-    """Trace un cercle dont le centre a pour coordonnées (x, y) et dont le diamètre prend la valeur fixée.
-    Idem ellipse((x, y, diametre, diametre)
+    """Trace un cercle.\n
+        Si ellipseMode('center') x et y sont les coordonnées du centre de l'ellipse.\n
+    Si ellipseMode('corners') x,y sont les coordonnées du coin du haut gauche du rectangle contenant l'ellipse.\n
+    Idem ellipse((x, y, diametre, diametre)\n
     Le cercle est rempli par la couleur définie par fill(couleur).\n
     paramètres optionnels :\n
     fill = couleur de remplissage prend le dessus sur fill()\n

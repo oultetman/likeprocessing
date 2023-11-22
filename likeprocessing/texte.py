@@ -40,6 +40,7 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
     padx = kwargs.get("padx", 0)
     pady = kwargs.get("pady", 0)
     padxy = kwargs.get("padxy", 0)
+
     style = kwargs.get("style", textStyle())
     if padxy > 0:
         padx = pady = padxy

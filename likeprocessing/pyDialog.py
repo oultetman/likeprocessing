@@ -26,7 +26,7 @@ import os
 class Boite(pygame.Rect):
     ecran = None
 
-    def __init__(self, parent: Optional[pygame.Rect], rect: Union[Tuple[int, int, int, int], pygame.Rect],
+    def __init__(self, parent: ["Boite", None], rect: Union[tuple[int, int, int, int], pygame.Rect],
                  **kwargs) -> None:
         """
         Initialise une instance de la classe Boite.
@@ -495,7 +495,7 @@ class ImageBox(Boite):
 
 
 class MultiLineText(Boite):
-    def __init__(self, parent: Boite, rect: tuple, texte: str, angle=0, **kwargs):
+    def __init__(self, parent: [Boite, None], rect: tuple, texte: str, angle=0, **kwargs):
         if len(rect) == 2:
             rect = (rect[0], rect[1], 0, 0)
         elif len(rect) == 3:
@@ -567,6 +567,7 @@ class MultiLineText(Boite):
     def draw(self):
         if self.visible:
             # fonction qui permet l'affichage de texte à  l'ecran
+            x, y = 0, 0
             super().draw()
             if self.align_h == "LEFT":
                 x = self.parent.left + self.left + 2 + self.padx
@@ -678,6 +679,7 @@ class Label(Boite):
             else:
                 img = self.image
             super().draw()
+            x = y = 0
             if self.align_h == "LEFT":
                 x = self.parent.left + self.left + 2 + self.padx
             elif self.align_h == "CENTER":
@@ -709,10 +711,10 @@ class TextEdit(Boite):
         nb_ligne = kwargs.get('nb_ligne', 10)
         ps = pygame.font.SysFont(kwargs["font"], kwargs["font_size"])
         h = ps.size("bg")[0]
-        rect = tuple(list(rect[:3]) + [(4 + h) * nb_ligne + 4])
+        rectangle: tuple[int,int,int,int] = tuple(list(rect[:3]) + [(4 + h) * nb_ligne + 4])
         if parent is None:
             processing.ihm.append(self)
-        super().__init__(parent, rect, **kwargs)
+        super().__init__(parent, rectangle, **kwargs)
         self.police = kwargs["font"]
         self.texte = texte.split("\n")
         self.nb_ligne = nb_ligne
@@ -1028,11 +1030,12 @@ class Bouton(Boite):
     BOUTON_TEXT_COLOR = affichage.rgb_color("black")
     BOUTON_TEXT_COLOR_DISABLED = affichage.rgb_color("grey90")
 
-    def __init__(self, parent, rect, texte, defaut=False, **kwargs):
-        if defaut:
-            b = 2
-        else:
-            b = 1
+    def __init__(self, parent: ["boite, None"], rect: [Boite, tuple[int, int, int, int]], texte: str,
+                 defaut: bool = False, **kwargs):
+        # if defaut:
+        #     b = 2
+        # else:
+        #     b = 1
         if len(rect) == 2:
             rect = (rect[0], rect[1], 0, 0)
         elif len(rect) == 3:
@@ -1258,6 +1261,7 @@ class Dialog(Boite):
         self.positionne()
         self.objet_focus = False
         self.pack_list = []
+        self.__default_name_object = "obj_"
 
     def init(self):
         self.objet = {}
@@ -1290,6 +1294,16 @@ class Dialog(Boite):
         self._visible = False
         self.focus = False
         self.destroy = True
+
+    @property
+    def default_name_object(self):
+        """retourne le nom par défaut d'un objet"""
+        return self.__default_name_object
+
+    @default_name_object.setter
+    def default_name_object(self, value: str):
+        """modifie le nom par défaut d'un objet"""
+        self.__default_name_object = value
 
     @property
     def focus(self):
@@ -1364,7 +1378,7 @@ class Dialog(Boite):
                     self.objet[o[1]] = o[0]
                 else:
                     o.parent = self
-                    self.objet[f"obj_{self.num_object}"] = o
+                    self.objet[f"{self.__default_name_object}{self.num_object}"] = o
                     self.num_object += 1
         else:
             if nom == "":
@@ -1403,7 +1417,7 @@ class Dialog(Boite):
                 else:
                     self.objet[o].setX((self.width - self.objet[o].width) // 2)
 
-    def aligne_h(self, objets_name: list[str], **kwargs):
+    def aligne_h1(self, objets_name: list[str], **kwargs):
         """aligne horizontalement une liste d'objet"""
         margin_left = kwargs.get("margin_left", None)
         margin_right = kwargs.get("margin_right", None)
@@ -1412,6 +1426,7 @@ class Dialog(Boite):
         height_maxi = 0
         width_maxi = 0
         posy = kwargs.get("posy", self.objet[objets_name[0]].y)
+        # détermine la hauteur maxi et la largeur maxi
         for o in objets_name:
             if self.objet[o].height > height_maxi:
                 height_maxi = self.objet[o].height
@@ -1419,41 +1434,189 @@ class Dialog(Boite):
                 width_maxi = self.objet[o].x + self.objet[o].width + 2
         if width_maxi > self.width and not isinstance(self, IhmScreen):
             self.width = width_maxi
+        width_totale = 0
+        index_ligne = 0
+        lignes: list[list[[Boite, None]]] = [[]]
+        width_ligne = []
         for o in objets_name:
             self.objet[o].setHeight(height_maxi)
+            width_totale += self.objet[o].width + 2
+            if width_totale > self.width:
+                width_ligne.append(width_totale - self.objet[o].width - 2)
+                width_totale = 0
+                posy += height_maxi + 2
+                index_ligne += 1
+                lignes.append([])
             self.objet[o].setY(posy)
             if egalise:
                 self.objet[o].width = self.objet[objets_name[0]].width
+            lignes[index_ligne].append(self.objet[o])
+        width_ligne.append(width_totale)
         if kwargs.get("expand", None) is not None:
             if kwargs["expand"].upper() == "X":
                 width = (self.width - padx * (len(objets_name) + 1)) / len(objets_name)
                 for o in objets_name:
                     self.objet[o].setWidth(width)
+        if len(lignes) == 0:
+            lignes = [self.objet[o] for o in objets_name]
+            width_ligne = [(self.width - sum([self.objet[o].width + padx for o in objets_name])) // 2]
+        x = []
         if margin_left is not None:
-            x = margin_left
+            x = [margin_left] * len(lignes)
         elif margin_right is not None:
-            x = self.width - 2 - margin_right - (padx * len(objets_name) - 1)
-            for o in objets_name:
-                x -= self.objet[o].width
+            x = [self.width - 2 - margin_right - (padx * len(objets_name) - 1)] * len(lignes)
+            for i in range(len(lignes)):
+                for o in lignes[i]:
+                    x[i] = x[i] - o.width
         else:
-            x = self.width - padx * (len(objets_name) - 1)
-            for o in objets_name:
-                x -= self.objet[o].width
-            if kwargs.get("expand", None) is None:
-                x /= 2
-            else:
-                x -= padx
-        for o in objets_name:
-            self.objet[o].setX(x)
-            x += self.objet[o].width + padx
+            x = [(self.width - width_ligne[i]) // 2 for i in range(len(lignes))]
+            # for i in range(len(lignes)):
+            #     for o in lignes[i]:
+            #         x[i] = x[i] - o.width
+            # x =  x - self.objet[o].width
+        #     if kwargs.get("expand", None) is None:
+        #         x /= 2
+        #     else:
+        #         x -= padx
+        # posx0 = x
+        for i in range(len(lignes)):
+            for o in lignes[i]:
+                o.setX(x[i])
+                x[i] += o.width + padx
 
-    def height_max(self, objects_names: list[str]) -> int:
+    def egalise(self, objets_name: list[str], **kwargs):
+        """egalise la largeur des objets"""
+        width = kwargs.get("width", self.objet[objets_name[0]].width)
+        for o in objets_name:
+            self.objet[o].setWidth(width)
+
+    def width_line(self, objets_name: list[str], padx=0) -> int:
+        """retourne la largeur totale des objets"""
+        if isinstance(objets_name, str):
+            objets = [self.objet_by_name(objets_name)]
+        elif isinstance(objets_name, list) and isinstance(objets_name[0], str):
+            objets = [self.objet_by_name(o) for o in objets_name]
+        else:
+            objets = objets_name
+        width = 0
+        for o in objets:
+            width += o.width
+        return width + (len(objets_name) - 1) * padx
+
+    def add_line_element(self, objects_name: list[str], padx: int = 2, margin=0, width_max: int = 0) -> list[
+        list[Boite, None]]:
+        """ajoute les éléments sur une ligne sans dépasser la largeur width_max (celle du Dialog par défaut)"""
+        if width_max == 0:
+            width_max = self.width
+        ligne = []
+        width = 0
+        for o in objects_name:
+            if width + self.objet[o].width <= width_max - margin:
+                ligne.append(self.objet[o])
+                width += self.objet[o].width + padx
+            else:
+                break
+        return ligne
+
+    def list_object_name_to_ligne(self, objets_name: list[str], padx=2, margin=0) -> tuple[
+        list[list[Any, None]], list[int], list[int]]:
+        lignes: list[list[[Boite, None], None]] = []
+        index_ligne = 0
+        width_ligne = []
+        height_ligne = []
+        objs = [o for o in objets_name]
+        while len(objs) > 0:
+            lignes.append(self.add_line_element(objs, padx, margin))
+            width_ligne.append(self.width_line(objs[:len(lignes[index_ligne])], padx))
+            objs = objs[len(lignes[index_ligne]):]
+            index_ligne += 1
+        # détermine la hauteur les lignes
+        for i in range(len(lignes)):
+            height_ligne.append(self.height_max(lignes[i]))
+        return lignes, width_ligne, height_ligne
+
+    def aligne_h(self, objets_name: list[str], **kwargs) -> int:
+        """aligne horizontalement une liste d'objets sur un Dialog si la ligne est trop longue
+        les objets sont placés sur la ligne suivante.
+        le placement par défaut est centré. margin_left et margin_right permettent de décaler les objets vers la gauche ou la droite
+        expend = True permet d'agrandir les objets pour qu'ils occupent toute la largeur du dialog.
+        egalise = True permet d'égaliser les largeurs. padx permet de définir un espace entre les objets.
+        posy permet de définir la position verticale des objets
+        retourne la position du bottom de la dernière ligne"""
+        if len(objets_name) > 0:
+            margin_left = kwargs.get("margin_left", None)
+            margin_right = kwargs.get("margin_right", None)
+            if margin_left is not None:
+                margin = margin_left
+            elif margin_right is not None:
+                margin = margin_right
+            else:
+                margin = 0
+            egalise = kwargs.get("egalise", False)
+            expand = kwargs.get("expand", False)
+            padx = kwargs.get("padx", 2)
+            posy = kwargs.get("posy", self.objet[objets_name[0]].y)
+            if egalise:
+                self.egalise(objets_name)
+            # répartit les objets sur plusieurs lignes si la largeur totale dépasse la largeur du Dialog ou la largeur max
+            lignes: list[list[[Boite, None], None]] = []
+            index_ligne = 0
+            width_ligne = []
+            height_ligne = []
+            objs = [o for o in objets_name]
+            while len(objs) > 0:
+                lignes.append(self.add_line_element(objs, padx, margin))
+                width_ligne.append(self.width_line(objs[:len(lignes[index_ligne])], padx))
+                objs = objs[len(lignes[index_ligne]):]
+                index_ligne += 1
+            # ajuste la largeur des objets pour qu'ils occupent toute la largeur du Dialog
+            if expand:
+                for i in range(len(lignes)):
+                    dx = (self.width - width_ligne[i]) / len(lignes[i])
+                    for o in lignes[i]:
+                        o.setWidth(o.width + dx)
+            # détermine la hauteur les lignes
+            for i in range(len(lignes)):
+                height_ligne.append(self.height_max(lignes[i]))
+            # recalcul la position des objets
+            x = []
+            if margin_left is not None:
+                x = [margin_left] * len(lignes)
+            elif margin_right is not None:
+                x = [self.width - 2 - margin_right - width_ligne[i] for i in range(len(lignes))]
+            else:
+                x = [(self.width - width_ligne[i]) // 2 for i in range(len(lignes))]
+            y = posy
+            for i in range(len(lignes)):
+                for o in lignes[i]:
+                    o.setX(x[i])
+                    o.setY(y)
+                    x[i] += o.width + padx
+                y += height_ligne[i] + 3
+
+            return sum(height_ligne) + posy
+        else:
+            posy = kwargs.get("posy", 0)
+            return posy
+
+    def height_max(self, objects_names: list[list[str, Boite]]) -> int:
         """détermine la hauteur maxi d'une liste d'objets """
-        height = 0
-        for o in objects_names:
-            if self.objet_by_name(o).height > height:
-                height = self.objet_by_name(o).height
-        return height
+        height_max = 0
+        if isinstance(objects_names, list) and len(objects_names) == 0:
+            return 0
+        if isinstance(objects_names, str):
+            objects = [self.objet_by_name(objects_names)]
+        elif isinstance(objects_names, list) and isinstance(objects_names[0], str):
+            objects = [self.objet_by_name(o) for o in objects_names]
+        else:
+            objects = objects_names
+        if self.width_line(objects) > self.width:
+            return sum(self.list_object_name_to_ligne(objects_names)[2])
+        else:
+            for o in objects:
+                if o.height > height_max:
+                    height_max = o.height
+            return height_max
 
     def same_height(self, objects_names: list[str], height: int):
         """ajuste les objets contenus dans la liste objects_names
@@ -1497,17 +1660,13 @@ class Dialog(Boite):
         elif pady is None:
             hauteur_totale_objet = 0
             for o in objet_name:
-                if isinstance(o, list):
-                    hauteur_totale_objet += self.height_max(o)
-                else:
-                    hauteur_totale_objet += self.objet[o].height
-            pady = round((self.height - decy - hauteur_totale_objet) / (len(objet_name) + 1))
+                hauteur_totale_objet += self.height_max(o)
+            pady = round((self.height - decy - margin_top - hauteur_totale_objet) / (len(objet_name) + 1))
 
         y = decy + margin_top
         for o in objet_name:
             if isinstance(o, list):
-                self.aligne_h(o, posy=y + pady, **kwargs)
-                y = self.objet[o[0]].bottom
+                y = self.aligne_h(o, posy=y + pady, **kwargs)
             else:
                 self.objet[o].setY(y + pady)
                 y = self.objet[o].bottom
@@ -1544,7 +1703,7 @@ class Dialog(Boite):
                 obj_focused = None
                 for o in self.objet.values():
                     try:
-                        if o.focus: # suppression de and not o.close
+                        if o.focus:  # suppression de and not o.close
                             obj_focused = o
                     except:
                         pass
@@ -1651,16 +1810,16 @@ class Dialog(Boite):
         xmini, xmaxi, ymini, ymaxi = 0, 0, 0, 0
         decy = 0
         for o in self.objet.values():
-            if o.x<xmini:
+            if o.x < xmini:
                 xmini = o.x
             if o.right > xmaxi:
                 xmaxi = o.right
-            if o.y<ymini:
+            if o.y < ymini:
                 ymini = o.y
-            if o.bottom>ymaxi:
+            if o.bottom > ymaxi:
                 ymaxi = o.bottom
-        self.setWidth(xmaxi-xmini + margin)
-        self.setHeight(ymaxi-ymini + margin + decy+10)
+        self.setWidth(xmaxi - xmini + margin)
+        self.setHeight(ymaxi - ymini + margin + decy + 10)
         self.positionne()
 
     def objet_by_name(self, name: [str, int]) -> ["Dialog", Bouton, LineEdit, Label, MultiLineText, TextEdit]:

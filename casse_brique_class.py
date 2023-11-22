@@ -85,7 +85,7 @@ class Balle(Rectangle):
         self.set_x(self.x + self.sens_x*self.vx)
         self.set_y(self.y + self.sens_y * self.vy)
 
-    def collision(self, brique: list[Brique, Raquette]):
+    def collision(self, brique: list[Brique]):
         for b in brique:
             if b.visible:
                 if b.is_in(self.x, self.top):
