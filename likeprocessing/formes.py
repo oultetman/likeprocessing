@@ -100,8 +100,6 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     rect_mode = kwargs.get("rect_mode", processing.__rect_center_mode)
     rect_mode = kwargs.get("center_mode", rect_mode)
     border_rounded = kwargs.get("border_rounded", 0)
-    margin_left = kwargs.get("margin_left", 0)
-    margin_top = kwargs.get("margin_top", 0)
     if image is not None:
         if hauteur == 0:
             hauteur = image.get_height()
@@ -137,10 +135,10 @@ def rect(x: int, y: int, largeur: int = 0, hauteur: int = 0, **kwargs):
     # if image is None:
     polygone(points, **kwargs)
     if image is not None:
-        dx = margin_left  # left
-        dy = margin_top  # top
+        dx = 0  # left
+        dy = 0  # top
         if align_h == "left":
-            dx = 0
+            dx += 0
         elif align_h == "right":
             dx = max(0, largeur - image.get_width())
         elif align_h == "center":

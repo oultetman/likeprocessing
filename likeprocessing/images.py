@@ -11,7 +11,7 @@ def loadImage(fichier: str) -> Image:
     try:
         return pygame.image.load(fichier)
     except:
-        FileNotFoundError(fichier)
+        raise FileNotFoundError(fichier)
 
 
 def loadImages(liste_images: list[str], sens=0) -> Image:

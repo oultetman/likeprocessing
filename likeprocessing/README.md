@@ -479,6 +479,12 @@ Si les deux paramètres sont présents les deux fonctions sont exécutées.
    </td>
   </tr>
   <tr>
+   <td>text_button(texte_bouton, x, y, largeur, hauteur,command=ma_fonction, name="nom")
+   </td>
+   <td>Affiche un bouton à la position (x, y) dans une boite de dimensions largeur x hauteur. couleur, largeur bord et couleur bord de la boite idem formes. largeur et hauteur sont optionnels.command est une fonction qui sera exécutée si le bouton est cliqué. name est optionnel et permet d'attribuer un nom au bouton. Si name est présent, la fonction command sera exécutée avec le paramètre name (optionnel). 
+   </td>
+  </tr>
+  <tr>
    <td>textAlign(alignement_horizontal)
 <p>
 textAlign(alignement_horizontal, alignement_vertical)
@@ -525,7 +531,14 @@ la fonction text possèdes elle aussi des paramètres optionnels qui ne concerne
 
 **allign_h et allign_v** permettent de positionner le texte dans la boîte de texte comme **textAllign()**.
 
-**padx et pady** permettent de créer une marge autour du texte (valeur en pixels)  \
+**padx et pady** permettent de créer une marge autour du texte (valeur en pixels)
+
+**margin_left, margin_right, margin_top, margin_bottom** permettent de créer de décaler le texte (valeur en pixels) \
+**margin_left** décale le texte vers la droite si align_h="left" \
+**margin_right** décale le texte vers la gauche si align_h="right" \
+**margin_top** décale le texte vers le bas si align_v="top" \
+**margin_bottom** décale le texte vers le haut si align_v="bottom" 
+
 exemple : 
 
 
@@ -534,7 +547,8 @@ text("salut les amis",20,30,300,allign_h="center",font="arial",font_size=48,font
 ```
 
 
-Ce code va afficher "salut les amis" dans un cadre de longueur 300 à la position x=20 et y=30. La hauteur du cadre est calculée en fonction de la hauteur du texte (font_size). **pady=10** ajoute 10 pixels au dessus et en dessous du texte. **Si la hauteur du cadre est donnée, si celle-ci est trop petite le texte sortira du cadre.**
+
+Ce code va afficher "salut les amis" dans un cadre de longueur 300 à la position x=20 et y=30. La hauteur du cadre est calculée en fonction de la hauteur du texte (font_size). **pady=10** ajoute 10 pixels au dessus et en dessous du texte. **Si la hauteur du cadre est donnée, si celle-ci est trop petite le texte sortira du cadre.** 
 
 
 ## Événements

@@ -24,6 +24,7 @@ def background(couleur_image: any):
         c = rgb_color(couleur_image)
         if c is not None:
             processing.__background_color = c
+            processing.__background_image = None
     processing.draw_background()
 
 
