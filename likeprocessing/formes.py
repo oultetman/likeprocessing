@@ -216,6 +216,8 @@ def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
     stroke = kwargs.get("stroke", processing.__border_color)
     points = [(x1, y1), (x2, y2)]
     points = processing.transformation(points)
+    x1, y1 = points[0]
+    x2, y2 = points[1]
     stroke_weight = kwargs.get("stroke_weight", processing.__border_width)
     fill_mouse_on = kwargs.get("fill_mouse_on", processing.__fill_color_mouse_on)
     arrow_start = kwargs.get("arrow_start", False)
