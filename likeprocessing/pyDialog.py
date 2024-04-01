@@ -243,7 +243,11 @@ class Boite(pygame.Rect):
                     # modifications pour arrondir les rectangles
                     # r = pygame.Surface((self.width, self.height))
                     # r.fill(couleur_fond)
-                    r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width, self.height)
+                    if isinstance(self.parent, Dialog):
+                        r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width,
+                                        self.height)
+                    else:
+                        r = pygame.Rect(self.left, self.top, self.width, self.height)
                     pygame.draw.rect(Boite.ecran, couleur_fond, r, 0, self.border_rounded)
                 else:
                     r = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
@@ -253,7 +257,11 @@ class Boite(pygame.Rect):
                 Boite.ecran.blit(self.image_rect, (self.parent.left + self.left, self.parent.top + self.top),
                                  (0, 0, self.image_rect.get_width(), self.image_rect.get_height()))
             if self.stroke_weight > 0:
-                r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width, self.height)
+                if isinstance(self.parent, Dialog):
+                    r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width,
+                                    self.height)
+                else:
+                    r = pygame.Rect(self.left, self.top, self.width, self.height)
                 pygame.draw.rect(Boite.ecran, couleur_bord, r, self.stroke_weight, self.border_rounded)
 
     def draw_infobulle(self):
@@ -711,7 +719,7 @@ class TextEdit(Boite):
         nb_ligne = kwargs.get('nb_ligne', 10)
         ps = pygame.font.SysFont(kwargs["font"], kwargs["font_size"])
         h = ps.size("bg")[0]
-        rectangle: tuple[int,int,int,int] = tuple(list(rect[:3]) + [(4 + h) * nb_ligne + 4])
+        rectangle: tuple[int, int, int, int] = tuple(list(rect[:3]) + [(4 + h) * nb_ligne + 4])
         if parent is None:
             processing.ihm.append(self)
         super().__init__(parent, rectangle, **kwargs)
@@ -1285,8 +1293,12 @@ class Dialog(Boite):
 
     def center_me(self):
         """center la boite sur l'écran"""
-        self.x = (self.parent.width - self.width) // 2
-        self.y = (self.parent.height - self.height) // 2
+        if isinstance(self.parent, Dialog):
+            self.x = (self.parent.width - self.width) // 2
+            self.y = (self.parent.height - self.height) // 2
+        else:
+            self.x = (processing.width() - self.width) // 2
+            self.y = (processing.height() - self.height) // 2
 
     def quitter(self):
         """methode appelée lors du clic sur la croix
@@ -2790,7 +2802,8 @@ class MessageBox(Dialog):
         processing.save_background()
         while self.value == -1:
             processing.draw_background()
-            self.parent.draw()
+            if isinstance(self.parent, Dialog):
+                self.parent.draw()
             self.draw()
             processing.redraw()
             __events = pygame.event.get()

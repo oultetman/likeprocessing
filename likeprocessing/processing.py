@@ -198,10 +198,12 @@ def score(valeur: int = None):
 
 
 def random(mini, maxi=None):
+    """retourne un nombre aléatoire entre mini et maxi inclus
+    si maxi n'est pas précisé, retourne un nombre aléatoire entre 0 et la valeur entrée en paramètre"""
     if maxi is None:
         maxi = mini
         mini = 0
-    return randint(mini, maxi - 1)
+    return randint(mini, maxi)
 
 
 def mouseX():

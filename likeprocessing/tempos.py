@@ -2,7 +2,6 @@ import likeprocessing.processing as processing
 
 
 class Tempo:
-
     def __init__(self, duree_ms: int, work=True):
         """t=Tempo(500) créer un objet de temporisation t de durée 500 ms qui se relance indéfiniment"""
         self.depart = processing.frameCount()
@@ -13,27 +12,42 @@ class Tempo:
         else:
             self.on = False
 
+    def stop(self):
+        """arrête le fonctionnement de la temporisation """
+        self.work = False
+
+    def start(self,value=None):
+        """démarre le fonctionnement de la temporisation """
+        self.work = True
+        if value is not None:
+            self.set_tempo(value)
+        else:
+            self.reset()
+
     def flip(self):
         self.on = not self.on
 
     def set_tempo(self, duree_ms: int):
         """permet de réinitialiser la temporisation avec une nouvelle valeur."""
-        self.depart = processing.frameCount()
         self.duree_ms = duree_ms
+        self.reset()
 
     def reset(self):
         """force le redémarrage de la temporisation."""
         self.on = self.work
-        self.depart = processing.frameCount()
+        if self.work:
+            self.depart = processing.frameCount()
 
     def fin(self) -> bool:
         """renvoie True lorsque la temporisation est terminée. Pour notre exemple au bout de 500 ms."""
-        if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
-            self.depart = processing.frameCount()
-            self.flip()
-            return True
-        else:
-            return False
+        if self.work:
+            if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
+                self.depart = processing.frameCount()
+                self.flip()
+                return True
+            else:
+                return False
+        return False
 
     def is_on(self):
         """renvoie True si la temporisation est à on."""
@@ -44,6 +58,13 @@ class Tempo:
         """renvoie True si la temporisation est à off."""
         return not self.is_on()
 
+    def is_stop(self):
+        """retourne True si la temporistion est à l'arrêt"""
+        return not self.work
+
+    def is_start(self):
+        """retourne True si la temporisation est en fonctionnement"""
+        return self.work
 
 class Monostable(Tempo):
     def __init__(self, duree_ms: int, work=True):
