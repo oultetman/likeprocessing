@@ -241,14 +241,34 @@ def line(x1: int, y1: int, x2: int, y2: int, **kwargs):
     if arrow_start:
         angle = trigo.atan2(y2 - y1, x2 - x1)
         r = processing.rotate(-angle, (x1, y1))
-        triangle(x1, y1, x1 + 5, y1 - 3, x1 + 5, y1 + 3, fill=stroke, no_fill=False, no_stroke=False)
+        processing.__transformation = False
+        pts = [(x1, y1), (x1 + 5, y1 - 3), (x1 + 5, y1 + 3)]
+        s = processing.scale(1)
+        t = processing.get_translate()
+        processing.init_translate(0,0)
+        #pts = processing.rotation(pts)
+        triangle(pts[0][0],pts[0][1],pts[1][0],pts[1][1],pts[2][0],pts[2][1], fill=stroke,
+                 no_fill=False, no_stroke=False)
+        processing.scale(s)
+        processing.translate(*t)
+        processing.__transformation = True
         processing.rotate(*r)
     if arrow_end:
         angle = trigo.atan2(y2 - y1, x2 - x1)
         r = processing.rotate(-angle, (x2, y2))
-        triangle(x2, y2, x2 - 5, y2 - 3, x2 - 5, y2 + 3, fill=stroke,
+        processing.__transformation = False
+        pts = [(x2, y2), (x2 - 5, y2 - 3), (x2 - 5, y2 + 3)]
+        s = processing.scale(1)
+        t = processing.get_translate()
+        processing.init_translate(0,0)
+        #pts = processing.rotation(pts)
+        triangle(pts[0][0],pts[0][1],pts[1][0],pts[1][1],pts[2][0],pts[2][1], fill=stroke,
                  no_fill=False, no_stroke=False)
+        processing.scale(s)
+        processing.translate(*t)
+        processing.__transformation = True
         processing.rotate(*r)
+
 
 
 def ellipseMode(corners_center: str = ""):

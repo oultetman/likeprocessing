@@ -949,6 +949,7 @@ class LineEdit(Boite):
             self.texte.cursor_visible = False
 
     def scan_events(self, events):
+        print(events)
         if self.is_disabled is False:
             self.scan_mouse()
             if self.focus:
@@ -1782,6 +1783,8 @@ class Dialog(Boite):
                             o.scan_mouse()
                         elif isinstance(o, ListRadio):
                             o.scan_mouse()
+                        elif isinstance(o, LineEdit):
+                            o.scan_events(processing.events())
                         elif isinstance(o, ComboBox):
                             o.scan_mouse()
                             if not o.close:
@@ -1795,6 +1798,7 @@ class Dialog(Boite):
         """scan les evenements clavier des objet"""
         for o in self.objet.values():
             if isinstance(o, LineEdit) and o.focus:
+                print("focus", processing.events())
                 o.scan_events(processing.events())
             elif isinstance(o, TextEdit) and o.focus:
                 o.scan_events()
