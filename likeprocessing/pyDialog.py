@@ -949,7 +949,6 @@ class LineEdit(Boite):
             self.texte.cursor_visible = False
 
     def scan_events(self, events):
-        print(events)
         if self.is_disabled is False:
             self.scan_mouse()
             if self.focus:
@@ -1700,10 +1699,10 @@ class Dialog(Boite):
 
     def draw(self):
         """dessine la boite de dialogue"""
-        try:
-            self.title = self.focus
-        except:
-            pass
+        # try:
+        #     self.title = self.focus
+        # except:
+        #     pass
         while len(self.destroyed) > 0:
             self.objet.pop(self.destroyed.pop())
         if self._visible:
@@ -1720,7 +1719,8 @@ class Dialog(Boite):
                             obj_focused = o
                     except:
                         pass
-                    o.draw()
+                    if obj_focused is None:
+                        o.draw()
                 if obj_focused is not None:
                     obj_focused.draw()
 
@@ -1798,7 +1798,6 @@ class Dialog(Boite):
         """scan les evenements clavier des objet"""
         for o in self.objet.values():
             if isinstance(o, LineEdit) and o.focus:
-                print("focus", processing.events())
                 o.scan_events(processing.events())
             elif isinstance(o, TextEdit) and o.focus:
                 o.scan_events()
@@ -1989,6 +1988,9 @@ class Painter(Boite):
     afin de pouvoir utiliser les fonctions forme de likeprocessing en surchargeant la méthode
     draw_paint de Paint.
     Exemple d'utilisation:
+
+    from likeprocessing.processing import *
+    from types import MethodType
     ihm = IhmScreen()
 
     def my_draw_paint(self):
@@ -1999,7 +2001,7 @@ class Painter(Boite):
         background("grey")
         dia = Dialog(ihm, (10, 10, 200, 200))
         paint = Painter(dia, (10, 10, 150, 150))
-        paint.draw_paint = my_draw_paint # surcharge de la méthode draw_paint
+        paint.draw_paint = MethodType(my_draw_paint, paint) # surcharge de la méthode draw_paint
         dia.addObjet(paint, "paint")
         ihm.addObjet(dia, "dia")
 
@@ -2012,23 +2014,20 @@ class Painter(Boite):
     run(globals())
     """
 
-    def __init__(self, parent, rect):
+    def __init__(self, parent, rect,no_fill=True):
         super().__init__(parent, rect)
 
     def draw(self):
         var_globs = processing.save_global()
         processing.init_globales()
-        processing.x0, processing.y0 = self.absolute().topleft
-        # pos = processing.translate(self.absolute().x, self.absolute().y)
+        #processing.x0, processing.y0 = self.absolute().topleft
+        pos = processing.translate(self.absolute().x, self.absolute().y)
         super().draw()
-        s = processing.screen.copy()
-        processing.screen = pygame.Surface((self.width - 1, self.height - 1), pygame.SRCALPHA)
         self.draw_paint()
-        s.blit(processing.screen, self.absolute().topleft)
-        processing.size(processing.width(), processing.height())
-        processing.screen.blit(s, (0, 0))
-        # processing.init_translate(*pos)
+        processing.init_translate(*pos)
         processing.init_globales(var_globs)
+        #dessine le cadre
+
 
     def mouse_x(self) -> int:
         """retourne la position x de la souris dans le repère de Painter """

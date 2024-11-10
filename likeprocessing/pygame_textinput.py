@@ -285,7 +285,6 @@ class TextInputVisualizer:
             self._require_rerender()
 
         # Make cursor visible when something is pressed
-        print(events)
         if [event for event in events if event.type == pl.KEYDOWN]:
             self._last_blink_toggle = 0
             self._cursor_visible = True
