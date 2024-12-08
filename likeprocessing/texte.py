@@ -71,12 +71,17 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
     margin_top = kwargs.get("margin_top", 0)
     margin_right = kwargs.get("margin_right", 2)
     margin_bottom = kwargs.get("margin_bottom", 2)
+    extend = kwargs.get("extend", True)
+
     for t in texte.split("\n"):
         text_bitmap.append(ps.render(t, True, processing.rgb_color(color)))
         r = text_bitmap[-1].get_rect()
         width = max(width, r.width)
         height = height + r.height
+    # if not extend:
     image = pygame.Surface((width, height), pygame.SRCALPHA, 32)
+    # else:
+    #     image = pygame.Surface((largeur, hauteur), pygame.SRCALPHA, 32)
     yi = 0
     xi = 0
     for l in text_bitmap:
@@ -86,11 +91,13 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
             xi = (width - l.get_width())
         image.blit(l, (xi, yi))
         yi += l.get_height()
-    largeur = max(largeur,width+2*padx)
-    hauteur= max(hauteur,height+2*pady)
+    if extend or largeur == 0:
+        largeur = max(largeur, width + 2 * padx)
+    if extend or hauteur == 0:
+        hauteur = max(hauteur, height + 2 * pady)
     image2 = pygame.Surface((largeur, hauteur), pygame.SRCALPHA, 32)
-    yi = margin_top+pady
-    xi = margin_left+padx
+    yi = margin_top + pady
+    xi = margin_left + padx
     if kwargs["align_h"].upper() == "CENTER":
         xi = (largeur - image.get_width()) // 2
     elif kwargs["align_h"].upper() == "RIGHT":
@@ -99,15 +106,17 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
         yi = (hauteur - image.get_height()) // 2
     elif kwargs["align_v"].upper() == "BOTTOM":
         yi = -margin_bottom + (hauteur - image.get_height())
-    image2.blit(image,(xi,yi))
+    image2.blit(image, (xi, yi))
     processing.rect(x, y, largeur, hauteur, **kwargs)
     kwargs["no_stroke"] = True
     kwargs["no_fill"] = True
     processing.rect(x, y, largeur, hauteur, image=image2, **kwargs)
 
+
 __border_width = 1
 __fill_color = (255, 255, 255)
 __border_color = (0, 0, 0)
+
 
 def text_button(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
     """Crée un bouton avec le texte passé en paramètre"""
@@ -118,8 +127,9 @@ def text_button(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
     kwargs["align_v"] = "center"
     kwargs["command"] = kwargs.get("command", None)
     kwargs["name"] = kwargs.get("name", None)
-    kwargs["fill_mouse_on"] = kwargs.get("fill_mouse_on","grey")
+    kwargs["fill_mouse_on"] = kwargs.get("fill_mouse_on", "grey")
     text(texte, x, y, largeur, hauteur, **kwargs)
+
 
 def textWidth(chaine: str) -> int:
     """retourne la largeur en pixels de l'affichage de chaine,

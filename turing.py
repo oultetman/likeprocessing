@@ -13,7 +13,7 @@ nb_position = 100
 ruban = [-1 for i in range(nb_position)]
 progtxt = "0 _ _ g 0\n0 1 0 g 1\n0 0 1 g 1\n1 0 1 g 1\n1 1 0 g 1\n1 _ _ d 2\n2 1 1 d 2\n2 0 0 d 2\n2 _ _ g 0"
 t = Tempo(1000)
-
+table=[]
 
 def marche():
     global erreur, etat, pos_tete
@@ -29,17 +29,27 @@ def arret():
     ihm.disabled("stop")
     ihm.enabled("all")
 
+def reset_ruban():
+    global ruban, pos_tete
+    ruban = [-1 for i in range(nb_position)]
+    init(0)
 
-def init():
+def init(pos=None):
     global pos_a_atteindre
     if erreur:
-        if ihm.objet.get("pos_init").text() != "":
-            print(ihm.objet.get("pos_init").text())
-            try:
-                pos_a_atteindre = int(ihm.objet.get("pos_init").text()) % nb_position
-            except:
-                pos_a_atteindre = 25
+        if pos is not None:
+            pos_a_atteindre = pos
+        else:
+            if ihm.objet_by_name("pos_init").text() != "":
+                print(ihm.objet_by_name("pos_init").text())
+                try:
+                    pos_a_atteindre = int(ihm.objet_by_name("pos_init").text()) % nb_position
+                except:
+                    pos_a_atteindre = 25
 
+def click(i):
+    global ruban
+    ruban[i] = (ruban[i] + 2) % 3-1
 
 def monte():
     global ecriture
@@ -63,7 +73,7 @@ def droite():
 
 
 def cls():
-    ihm.objet.get("editeur").set_text("")
+    ihm.objet_by_name("editeur").text("")
 
 
 ihm = IhmScreen()
@@ -72,40 +82,45 @@ ihm = IhmScreen()
 def scan_event():
     ihm.scan_events()
 
-
-def programme(prg=None):
-    global ruban, pos_tete, etat, erreur, ecriture, pos_tete_suivante
-    if etat == "-1":
-        init = [0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0]
-        pos_init = 2
+def init_prg(prg=None|str):
+    global etat, ruban, pos_tete, pos_tete_suivante, ecriture, erreur, table
+    if ihm.objet_by_name("init").text() != "":
+        init = [int(i) for i in ihm.objet_by_name("init").text()]
+        pos_init = int(ihm.objet_by_name("pos_init").text()) % nb_position
         ruban[pos_init:pos_init + len(init)] = init
-        etat = "0"
-    elif ecriture is None and pos_tete_suivante is None:
-        if prg is None:
-            prog = ["0;-1;-1;g;0", "0;1;0;g;1", "0;0;1;g;1", "1;0;1;g;1",
-                    "1;1;0;g;1", "1;-1;-1;d;2", "2;1;1;d;2", "2;0;0;d;2", "2;-1;-1;g;0"]
-            table = [l.split(";") for l in prog]
-        else:
-            p = []
-            for l in prg:
-                if l != "":
-                    p.append(l.replace("_", "-1"))
-            table = [l.split(" ") for l in p]
-        erreur = True
-        for ligne in table:
-            if ligne[0] == etat and str(ruban[pos_tete]) == ligne[1]:
-                ecriture = int(ligne[2])
-                if ecriture == ruban[pos_tete]:
-                    ecriture = None
-                if ligne[3].lower() == "g":
-                    pos_tete_suivante = (pos_tete + 1) % nb_position
-                elif ligne[3].lower() == "d":
-                    pos_tete_suivante = (pos_tete - 1) % nb_position
-                else:
-                    pos_tete_suivante = None
-                etat = ligne[4]
-                erreur = False
-                break
+
+    if prg is None:
+        prog = ["0;-1;-1;g;0", "0;1;0;g;1", "0;0;1;g;1", "1;0;1;g;1",
+                "1;1;0;g;1", "1;-1;-1;d;2", "2;1;1;d;2", "2;0;0;d;2", "2;-1;-1;g;0"]
+        table = [l.split(";") for l in prog]
+    else:
+        p = []
+        if isinstance(prg, str):
+            prg = prg.split("\n")
+        for l in prg:
+            if l != "":
+                p.append(l.replace("_", "-1"))
+        table = [l.split(" ") for l in p]
+    etat = table[0][0]
+
+def programme():
+    global ruban, pos_tete, etat, erreur, ecriture, pos_tete_suivante
+
+    erreur = True
+    for ligne in table:
+        if ligne[0] == etat and str(ruban[pos_tete]) == ligne[1]:
+            ecriture = int(ligne[2])
+            if ecriture == ruban[pos_tete]:
+                ecriture = None
+            if ligne[3].lower() == "g":
+                pos_tete_suivante = (pos_tete + 1) % nb_position
+            elif ligne[3].lower() == "d":
+                pos_tete_suivante = (pos_tete - 1) % nb_position
+            else:
+                pos_tete_suivante = None
+            etat = ligne[4]
+            erreur = False
+            break
 
 
 def deplacement_ecriture():
@@ -159,7 +174,8 @@ def compute():
         elif keyIsDown(K_DOWN):
             descend()
     if erreur is False:
-        programme(ihm.objet.get("editeur").text())
+        init_prg(ihm.objet_by_name("editeur").text())
+        programme()
     deplacement_ecriture()
     deplacement_ruban()
 
@@ -180,13 +196,13 @@ def draw_ruban(posy):
     # dessin rectangle datas
     for i in range(pos_tete - 25, pos_tete + 27):
         if i == pos_tete and ecriture is not None:
-            rect(width() // 2, posy - 10 * ruban[pos_tete] + y_sous_tete * 10, 15, 60)
+            rect(width() // 2, posy - 10 * ruban[pos_tete] + y_sous_tete * 10, 15, 60,fill_mouse_on="0xff55ff", name = i, command=click)
         elif ruban[i % nb_position] == -1:
-            rect(j * 20, posy+10, 15, 60)
+            rect(j * 20, posy+10, 15, 60,fill_mouse_on="0xff55ff", name = i, command=click)
         elif ruban[i % nb_position] == 0:
-            rect(j * 20, posy, 15, 60)
+            rect(j * 20, posy, 15, 60,fill_mouse_on="0xff55ff", name = i, command=click)
         elif ruban[i % nb_position] == 1:
-            rect(j * 20, posy-10, 15, 60)
+            rect(j * 20, posy-10, 15, 60,fill_mouse_on="0xff55ff", name = i, command=click)
         j += 1
     init_translate()
     rect(width() // 2-2, posy, width()+4, 30)
@@ -222,6 +238,9 @@ def setup():
     ihm.addObjet(Bouton(None, (40, 82, 20, 20), '<', command=gauche), "gauche")
     ihm.addObjet(Bouton(None, (80, 82, 20, 20), '>', command=droite), "droite")
     ihm.addObjet(Bouton(None, (225, 20, 45, 20), 'cls', command=cls), "cls")
+    ihm.addObjet(Label(None, (0, 120, 0, 0), "init"), "initpos")
+    ihm.addObjet(LineEdit(None, (20, 120, 95, 20), ""), "init")
+    ihm.addObjet(Bouton(None, (20, 150, 95, 20), "Reset ruban",command=reset_ruban), "reset ruban")
     ihm.objet_by_name("stop").is_disabled = True
     print(ihm.objet.keys())
 
@@ -229,10 +248,6 @@ def setup():
 def draw():
     ihm.draw()
     draw_ruban(280)
-    # if t.fin():
-    #     e = ihm.objet.get("editeur")
-    #     print(e.ligne_actuelle)
-    #     print(e.texte)
 
 
 run(globals())

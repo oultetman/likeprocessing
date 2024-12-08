@@ -19,7 +19,7 @@ __couleur_bord_cadre_texte = "black"
 __text_align_h = "LEFT"
 __text_align_v = "TOP"
 __angle_mode = 1
-__width, __height = 300, 200
+__width, __height = 1, 1
 __background_color = (0, 0, 0)
 __background_image = None
 __border_width = 1
@@ -51,7 +51,7 @@ __mouse_wheel = 0
 __frameCount = 0
 objets = []
 aliens = None
-screen = pygame.display.set_mode((300, 200), pygame.RESIZABLE)
+screen = pygame.display.set_mode((1, 1), pygame.RESIZABLE)
 Boite.init(screen)
 __rotation = 0
 __axis = (0, 0)
@@ -236,6 +236,7 @@ def size(largeur: int, hauteur: int):
     processing.__width, processing.__height = largeur, hauteur
     processing.screen = pygame.display.set_mode((largeur, hauteur), processing.__resizable)
     pygame.display.set_caption(__title)
+    processing.Boite.ecran = processing.screen
 
 
 def resizable_screen(resizable: bool = True) -> None:
