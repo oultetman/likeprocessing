@@ -65,8 +65,7 @@ class TextInputManager:
         complete = self.value
         self.value = complete[:start] + complete[end:]
         self.cursor_pos = start
-        self.selection_cursor_start = None
-        self.selection_cursor_end = None
+        self.deselect()
 
     def deselect(self):
         self.selection_cursor_start = None
@@ -187,6 +186,10 @@ class TextInputManager:
             self.selection_cursor_start = None
             self.selection_cursor_end = None
 
+    def _process_shift_tab(self):
+        if len(self.left)>=4 and self.left[-4:] == "    ": # 4 espaces
+            self.left = self.left[:-4]
+
     def _process_delete(self):
         if self.selection_value() != "":
             self.erase_selection()
@@ -201,28 +204,41 @@ class TextInputManager:
 
     def _process_right(self):
         self.cursor_pos += 1
+        self.deselect()
 
     def _process_left(self):
         self.cursor_pos -= 1
+        self.deselect()
 
     def _process_end(self):
         self.cursor_pos = len(self.value)
+        self.deselect()
 
     def _process_ctrl_end(self):
         self.cursor_pos = len(self.value)
+        self.deselect()
 
     def _process_ctrl_home(self):
         self.cursor_pos = 0
+        self.deselect()
 
     def _process_home(self):
         self.cursor_pos = 0
+        self.deselect()
 
     def _process_return(self):
         self.key_return = True
 
+    def _process_enter(self):
+        self.key_return = True
+
+    def _process_tab(self):
+        if self.right[:4] =="    ": # 4 espaces
+            self.right = self.right[4:]
+        self.left += "    "
+
     def _process_escape(self):
-        self.selection_cursor_start = None
-        self.selection_cursor_end = None
+        self.deselect()
 
     def _process_other(self, event):
         if event.unicode != "" and self.selection_cursor_start is not None:
@@ -315,6 +331,11 @@ class TextInputVisualizer:
         self._surface = pygame.Surface((self._cursor_width, self._font_object.get_height()))
         self._rerender_required = True
 
+    def set_cursor_pos(self, cursor_pos: int):
+        """ Set the cursor position. """
+        self.manager.cursor_pos = cursor_pos
+        self._rerender()
+
     @property
     def value(self):
         """ Get / set the value of text alreay inputted. Doesn't change cursor position if possible."""
@@ -379,7 +400,6 @@ class TextInputVisualizer:
     @cursor_visible.setter
     def cursor_visible(self, v):
         self._cursor_visible = v
-        # self._last_blink_toggle = 0
         self._require_rerender()
 
     @property
@@ -477,7 +497,7 @@ class TextInputVisualizer:
             self._surface.fill(self._cursor_color, cursor_rect)
 
     def deselect(self):
-        """ Erase the current selection """
+        """ deselect the current selection """
         self.manager.deselect()
         self._require_rerender()
 
@@ -555,11 +575,27 @@ class MultilineTextInputManager(TextInputManager):
         lines, cursor_line, cursor_pos = self.slice_texte()
         if cursor_line > 0:
             s = sum([len(l) for l in lines[:cursor_line - 1]])
-            print(s, cursor_pos)
             m = min(cursor_pos, len(lines[cursor_line - 1].strip("\n")))
-            print(m)
-            print()
             self.cursor_pos = s + m
+        self.deselect()
+
+    def _process_shift_up(self):
+        """ Move the cursor up while selecting. """
+        lines, cursor_line, cursor_pos = self.slice_texte()
+        if cursor_line > 0:
+            s = sum([len(l) for l in lines[:cursor_line - 1]])
+            m = min(cursor_pos, len(lines[cursor_line - 1].strip("\n")))
+            cursor_pos = s + m
+            if self.selection_cursor_start is None:
+                self.selection_cursor_start = self.cursor_pos
+                self.cursor_pos = cursor_pos
+                self.selection_cursor_end = cursor_pos
+            else:
+                self.cursor_pos = cursor_pos
+                self.selection_cursor_end = self.cursor_pos
+            if self.selection_cursor_end == self.selection_cursor_start:
+                self.selection_cursor_start = None
+                self.selection_cursor_end = None
 
     def _process_down(self):
         """ Move the cursor down. """
@@ -568,19 +604,51 @@ class MultilineTextInputManager(TextInputManager):
             self.cursor_pos = sum([len(l) for l in lines[:cursor_line + 1]]) + min(cursor_pos,
                                                                                    len(lines[cursor_line + 1].strip(
                                                                                        "\n")))
+        self.deselect()
+
+    def _process_shift_down(self):
+        """ Move the cursor down while selecting. """
+        lines, cursor_line, cursor_pos = self.slice_texte()
+        if cursor_line < len(lines) - 1:
+            cursor_pos = sum([len(l) for l in lines[:cursor_line + 1]]) + min(cursor_pos,
+                                                                               len(lines[cursor_line + 1].strip("\n"))
+                                                                               )
+            if self.selection_cursor_start is None:
+                self.selection_cursor_start = self.cursor_pos
+                self.cursor_pos = cursor_pos
+                self.selection_cursor_end = cursor_pos
+            else:
+                self.cursor_pos = cursor_pos
+                self.selection_cursor_end = self.cursor_pos
+            if self.selection_cursor_end == self.selection_cursor_start:
+                self.selection_cursor_start = None
+                self.selection_cursor_end = None
 
     def _process_end(self):
         lines, cursor_line, cursor_pos = self.slice_texte()
         self.cursor_pos = sum([len(l) for l in lines[:cursor_line]]) + len(lines[cursor_line].strip("\n")) - 1
+        self.deselect()
 
     def _process_home(self):
         lines, cursor_line, cursor_pos = self.slice_texte()
         self.cursor_pos = sum([len(l) for l in lines[:cursor_line]])
+        self.deselect()
 
     def _process_return(self):
         """ Add a new line. """
         self.left += "\n"
 
+    def _process_enter(self):
+            """ Add a new line. """
+            self.left += "\n"
+
+    def move_up(self):
+        """ Move the cursor up. """
+        self._process_up()
+
+    def move_down(self):
+        """ Move the cursor down. """
+        self._process_down()
 
 class MultilineTextInputVisualizer(TextInputVisualizer):
     """
@@ -635,6 +703,7 @@ class MultilineTextInputVisualizer(TextInputVisualizer):
         # Trouver la position du curseur dans cette ligne
         cursor_pos = sum([len(l) for l in self._lines[:line_index]])
         nb_car = len(self._lines[line_index])
+        i = 0
         for i in range(nb_car):
             w_car = self.font_object.size(self._lines[line_index][:i + 1])[0]
             if w_car >= x:

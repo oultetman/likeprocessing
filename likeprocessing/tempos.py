@@ -1,10 +1,10 @@
 import likeprocessing.processing as processing
-
+from time import time
 
 class Tempo:
     def __init__(self, duree_ms: int, work=True):
         """t=Tempo(500) créer un objet de temporisation t de durée 500 ms qui se relance indéfiniment"""
-        self.depart = processing.frameCount()
+        self.depart = time()*1000
         self.duree_ms = duree_ms
         self.work = work
         if self.work:
@@ -36,13 +36,14 @@ class Tempo:
         """force le redémarrage de la temporisation."""
         self.on = self.work
         if self.work:
-            self.depart = processing.frameCount()
+            self.depart = time()*1000
 
     def fin(self) -> bool:
         """renvoie True lorsque la temporisation est terminée. Pour notre exemple au bout de 500 ms."""
         if self.work:
-            if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
-                self.depart = processing.frameCount()
+            #if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
+            if time()*1000 - self.depart >= self.duree_ms:
+                self.depart = time()*1000
                 self.flip()
                 return True
             else:
@@ -75,8 +76,7 @@ class Monostable(Tempo):
 
     def fin(self):
         """renvoie True lorsque la temporisation est terminée. Pour notre exemple au bout de 500 ms."""
-        if not self.__stop and (
-                (processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
+        if not self.__stop and (time()*1000- self.depart) >= self.duree_ms:
             self.flip()
             self.__stop = True
             return True
@@ -111,14 +111,14 @@ class Pwm(Tempo):
 
     def fin(self) -> bool:
         """renvoie True lorsque la temporisation est terminée. Pour notre exemple au bout de 500 ms."""
-        if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms:
+        if time()*1000 - self.depart >= self.duree_ms:
             if self.nb_cycle is None or self.compteur_cycle<self.nb_cycle-1:
                 super().reset()
                 if self.nb_cycle is not None:
                     self.compteur_cycle+=1
             return True
         else:
-            if ((processing.frameCount() - self.depart) / processing.getFrameRate()) * 1000 >= self.duree_ms*self.duty_cycle/100:
+            if time()*1000 - self.depart >= self.duree_ms*self.duty_cycle/100:
                 if self.work == self.on:
                     self.flip()
             return False

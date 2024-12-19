@@ -91,9 +91,9 @@ def text(texte: [str, int, float], x, y, largeur=0, hauteur=0, **kwargs):
             xi = (width - l.get_width())
         image.blit(l, (xi, yi))
         yi += l.get_height()
-    if extend or largeur == 0:
+    if extend or largeur <= 0:
         largeur = max(largeur, width + 2 * padx)
-    if extend or hauteur == 0:
+    if extend or hauteur <= 0:
         hauteur = max(hauteur, height + 2 * pady)
     image2 = pygame.Surface((largeur, hauteur), pygame.SRCALPHA, 32)
     yi = margin_top + pady

@@ -62,7 +62,7 @@ class Boite(pygame.Rect):
         self.fill = kwargs.get("fill", "white")
         self.stroke_weight = kwargs.get("stroke_weight", 1)
         self.infobulle = kwargs.get("tool_tips", "")
-        self._expand = kwargs.get("expand", None)
+        self._expand = kwargs.get("expand", "")
         self.expend()
         self.affiche_tool_tips = False
         self.fillDisabled = kwargs.get('fillDisabled', affichage.rgb_color("grey"))
@@ -88,6 +88,9 @@ class Boite(pygame.Rect):
             pass
         except:
             pass
+
+    def __str__(self) -> str:
+        return f"Boite( : {self.name}, {super().__str__()}"
 
     @property
     def focus(self):
@@ -130,7 +133,7 @@ class Boite(pygame.Rect):
         Returns:
             None
         """
-        if self._expand is not None:
+        if self._expand != "":
             if self._expand.upper() == "X":
                 self.width = self.parent.width - 4
                 self.x = 2
@@ -230,7 +233,7 @@ class Boite(pygame.Rect):
     def setHeight(self, value: int):
         self.height = value
 
-    def setRect(self,rect:tuple[int,int,int,int]):
+    def setRect(self, rect: tuple[int, int, int, int]):
         self.setX(rect[0])
         self.setY(rect[1])
         self.setWidth(rect[2])
@@ -257,7 +260,7 @@ class Boite(pygame.Rect):
                     # r = pygame.Surface((self.width, self.height))
                     # r.fill(couleur_fond)
                     if isinstance(self.parent, Dialog):
-                        r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width,
+                        r = pygame.Rect(self.absolute().left, self.absolute().top, self.width,
                                         self.height)
                     else:
                         r = pygame.Rect(self.left, self.top, self.width, self.height)
@@ -265,13 +268,13 @@ class Boite(pygame.Rect):
                 else:
                     r = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
                     r = r.convert_alpha()
-                    Boite.ecran.blit(r, [self.parent.left + self.left, self.parent.top + self.top])
+                    Boite.ecran.blit(r, [self.absolute().left, self.absolute().top])
             else:
-                Boite.ecran.blit(self.image_rect, (self.parent.left + self.left, self.parent.top + self.top),
+                Boite.ecran.blit(self.image_rect, (self.absolute().left, self.absolute().top),
                                  (0, 0, self.image_rect.get_width(), self.image_rect.get_height()))
             if self.stroke_weight > 0:
                 if isinstance(self.parent, Dialog):
-                    r = pygame.Rect(self.parent.left + self.left, self.parent.top + self.top, self.width,
+                    r = pygame.Rect(self.absolute().left, self.absolute().top, self.width,
                                     self.height)
                 else:
                     r = pygame.Rect(self.left, self.top, self.width, self.height)
@@ -289,7 +292,7 @@ class Boite(pygame.Rect):
         self.tick += 1
 
     def collidepoint(self, x, y):
-        return super().collidepoint(x - self.parent.left, y - self.parent.top)
+        return super().collidepoint(x - self.parent.absolute().left, y - self.parent.absolute().top)
 
     def scan_mouse(self):
         """gestion des bulles d'info"""
@@ -331,40 +334,68 @@ class Slider:
         """
         self.parent = parent
         self.sens = processing.borner(sens, 0, 1)
-        self.maxi = 1000
-        self.slider_width = 10
-        self.slider_length = 40
-        self.pas_mouse_slider = 10
+        self.maxi = kwargs.get("maxi", 1000)
+        self.slider_width = kwargs.get("width", 10)
+        self.slider_length = kwargs.get("length", 40)
+        self.pas_mouse_slider = kwargs.get("pas", self.parent.width // 5)
         self.visible = True
-        self.__value = 1000
+        self.__value = 0
         self.slider_rect = pygame.Rect((0, 0, 0, 0))
         self.cursor_rect = pygame.Rect((0, 0, 0, 0))
-        self.value = 500
+        self.value = 0
+        self.focus = False
+        self.only_one = kwargs.get("only_one", False)
 
     def recalcule_position(self) -> None:
         """
         Recalcule la position du Slider en fonction de sa boîte parente et de sa valeur actuelle.
         """
         if self.sens == 0:
-            self.slider_rect = pygame.Rect(self.parent.absolute().x + 1,
-                                           self.parent.absolute().bottom - self.slider_width - 1,
-                                           self.parent.width - self.slider_width - 2,
-                                           self.slider_width)
-            self.cursor_rect = pygame.Rect(
-                self.parent.absolute().x + 1 + self.__value * (self.slider_rect.width - self.slider_length) / 1000,
-                self.parent.absolute().bottom - self.slider_rect.height - 1,
-                self.slider_length,
-                self.slider_width)
+            # horizontal
+            if self.only_one:
+                self.slider_rect = pygame.Rect(self.parent.absolute().x + 1,
+                                               self.parent.absolute().bottom - self.slider_width - 1,
+                                               self.parent.width - 1,
+                                               self.slider_width)
+                self.cursor_rect = pygame.Rect(
+                    self.parent.absolute().x + 1 + self.__value * (
+                                self.slider_rect.width - self.slider_length) / self.maxi,
+                    self.parent.absolute().bottom - self.slider_rect.height - 1,
+                    self.slider_length,
+                    self.slider_width)
+            else:
+                self.slider_rect = pygame.Rect(self.parent.absolute().x + 1,
+                                               self.parent.absolute().bottom - self.slider_width - 1,
+                                               self.parent.width - self.slider_width - 1,
+                                               self.slider_width)
+                self.cursor_rect = pygame.Rect(
+                    self.parent.absolute().x + 1 + self.__value * (
+                                self.slider_rect.width - self.slider_length) / self.maxi,
+                    self.parent.absolute().bottom - self.slider_rect.height - 1,
+                    self.slider_length,
+                    self.slider_width)
         else:
-            self.slider_rect = pygame.Rect(self.parent.absolute().right - self.slider_width - 1,
-                                           self.parent.absolute().y + 1,
-                                           self.slider_width,
-                                           self.parent.height - self.slider_width - 2)
-            self.cursor_rect = pygame.Rect(self.parent.absolute().right - self.slider_width - 1,
-                                           self.parent.absolute().y + 1 + self.__value * (
-                                                   self.slider_rect.height - self.slider_length) / 1000,
-                                           self.slider_width,
-                                           self.slider_length)
+            # vertical
+            if self.only_one:
+                self.slider_rect = pygame.Rect(self.parent.absolute().right - self.slider_width - 1,
+                                               self.parent.absolute().y + 0 + self.parent.decy,
+                                               self.slider_width,
+                                               self.parent.height - 1 - self.parent.decy)
+                self.cursor_rect = pygame.Rect(self.parent.absolute().right - self.slider_width - 1,
+                                               self.parent.absolute().y + 0 + self.parent.decy + self.__value * (
+                                                       self.slider_rect.height - self.slider_length) / self.maxi,
+                                               self.slider_width,
+                                               self.slider_length)
+            else:
+                self.slider_rect = pygame.Rect(self.parent.absolute().right - self.slider_width - 1,
+                                               self.parent.absolute().y + 0 + self.parent.decy,
+                                               self.slider_width,
+                                               self.parent.height - self.slider_width - 1 - self.parent.decy)
+                self.cursor_rect = pygame.Rect(self.parent.absolute().right - self.slider_width - 1,
+                                               self.parent.absolute().y + 0 + self.parent.decy + self.__value * (
+                                                       self.slider_rect.height - self.slider_length) / self.maxi,
+                                               self.slider_width,
+                                               self.slider_length)
 
     @property
     def value(self) -> int:
@@ -406,13 +437,16 @@ class Slider:
         if self.visible and self.slider_rect.collidepoint((x, y)):
             if click:
                 if self.sens == 0:
-                    self.value = (x - self.slider_rect.x - self.slider_length // 2) * self.maxi / (
-                            self.slider_rect.width - self.slider_length)
+                    self.value = round(
+                        processing.borner((x - self.slider_rect.x - self.slider_length // 2) * self.maxi / (
+                                self.slider_rect.width - self.slider_length), 0, self.maxi))
                 else:
-                    self.value = (y - self.slider_rect.y - self.slider_length // 2) * self.maxi / (
-                            self.slider_rect.height - self.slider_length)
+                    self.value = round(
+                        processing.borner((y - self.slider_rect.y - self.slider_length // 2) * self.maxi / (
+                                self.slider_rect.height - self.slider_length), 0, self.maxi))
             elif processing.get_mouse_wheel() != 0:
-                self.value = self.value - self.pas_mouse_slider * processing.get_mouse_wheel()
+                self.value = processing.borner(self.value - self.pas_mouse_slider * processing.get_mouse_wheel(), 0,
+                                               self.maxi)
 
 
 class ImageBox(Boite):
@@ -538,6 +572,14 @@ class MultiLineText(Boite):
         self.padx = kwargs.get('padx', 2)
         self.pady = kwargs.get('pady', 2)
         self.angle = angle
+        self.expand_x = False
+        self.expand_y = False
+        kwargs["expand"] = kwargs.get("expand", "xy")
+        if len(kwargs["expand"]) > 0:
+            if kwargs["expand"][0] == "x":
+                self.expand_x = True
+            if kwargs["expand"][-1] == "y":
+                self.expand_y = True
         self.image = self.imageTexte()
 
     def text(self, texte: [str, None] = None):
@@ -549,7 +591,7 @@ class MultiLineText(Boite):
             self._texte = texte
         self.image = self.imageTexte()
 
-    def line(self, index: int, texte: str|None = None):
+    def line(self, index: int, texte: str | None = None):
         """Mofiie la ligne index par le texte donné en paramètre"""
         if texte is None:
             return self._texte[index]
@@ -594,7 +636,14 @@ class MultiLineText(Boite):
             r = text_bitmap[-1].get_rect()
             width = max(width, r.width)
             height = height + r.height
-        image = pygame.Surface((width, height), pygame.SRCALPHA, 32)
+        if not self.expand_x and not self.expand_y:
+            image = pygame.Surface((min(self.width, width), min(height, self.height)), pygame.SRCALPHA, 32)
+        elif self.expand_x and not self.expand_y:
+            image = pygame.Surface((width, min(height, self.height)), pygame.SRCALPHA, 32)
+        elif self.expand_y and not self.expand_x:
+            image = pygame.Surface((min(self.width, width), height), pygame.SRCALPHA, 32)
+        else:
+            image = pygame.Surface((width, height), pygame.SRCALPHA, 32)
         y = 0
         x = 0
         for l in text_bitmap:
@@ -610,8 +659,13 @@ class MultiLineText(Boite):
             image = pygame.transform.rotate(image, self.angle)
             width = image.get_width()
             height = image.get_height()
-        self.width = max(width + 2 * self.padx, self.width)
-        self.height = max(height + 2 * self.pady, self.height)
+        if self.expand_x and not self.expand_y:
+            self.width = max(width + 2 * self.padx, self.width)
+        elif self.expand_y and not self.expand_x:
+            self.height = max(height + 2 * self.pady, self.height)
+        elif self.expand_x and self.expand_y:
+            self.width = max(width + 2 * self.padx, self.width)
+            self.height = max(height + 2 * self.pady, self.height)
         return image
 
     def draw(self):
@@ -620,17 +674,17 @@ class MultiLineText(Boite):
             x, y = 0, 0
             super().draw()
             if self.align_h == "LEFT":
-                x = self.parent.left + self.left + 2 + self.padx
+                x = self.absolute().left + 2 + self.padx
             elif self.align_h == "CENTER":
-                x = self.parent.left + self.left + (self.width - self.image.get_width()) // 2
+                x = self.absolute().left + (self.width - self.image.get_width()) // 2
             elif self.align_h == "RIGHT":
-                x = self.parent.left + self.left - 2 - self.padx + (self.width - self.image.get_width())
+                x = self.absolute().left - 2 - self.padx + (self.width - self.image.get_width())
             if self.align_v == "TOP":
-                y = self.parent.top + self.top + 2 + self.pady
+                y = self.absolute().top + 2 + self.pady
             elif self.align_v == "CENTER":
-                y = self.parent.top + self.top + (self.height - self.image.get_height()) // 2
+                y = self.absolute().top + (self.height - self.image.get_height()) // 2
             elif self.align_v == "BOTTOM":
-                y = self.parent.top + self.top - 2 - self.pady + (self.height - self.image.get_height())
+                y = self.absolute().top - 2 - self.pady + (self.height - self.image.get_height())
             Boite.ecran.blit(self.image, [x, y])
             self.draw_infobulle()
 
@@ -640,6 +694,7 @@ class MultiLineText(Boite):
 
     def __str__(self):
         return super().__str__() + " " + str(self.text)
+
 
 class Label(Boite):
     """affiche un texte sur une ligne dans une boite"""
@@ -730,17 +785,17 @@ class Label(Boite):
             super().draw()
             x = y = 0
             if self.align_h == "LEFT":
-                x = self.parent.left + self.left + 2 + self.padx
+                x = self.absolute().left + 2 + self.padx
             elif self.align_h == "CENTER":
-                x = self.parent.left + self.left + (self.width - self.image.get_width()) // 2
+                x = self.absolute().left + (self.width - self.image.get_width()) // 2
             elif self.align_h == "RIGHT":
-                x = self.parent.left + self.left - 2 - self.padx + (self.width - self.image.get_width())
+                x = self.absolute().left - 2 - self.padx + (self.width - self.image.get_width())
             if self.align_v == "TOP":
-                y = self.parent.top + self.top + 2 + self.pady
+                y = self.absolute().top + 2 + self.pady
             elif self.align_v == "CENTER":
-                y = self.parent.top + self.top + (self.height - self.image.get_height()) // 2
+                y = self.absolute().top + (self.height - self.image.get_height()) // 2
             elif self.align_v == "BOTTOM":
-                y = self.parent.top + self.top - 2 - self.pady + (self.height - self.image.get_height())
+                y = self.absolute().top - 2 - self.pady + (self.height - self.image.get_height())
             Boite.ecran.blit(img, [x, y])
             self.draw_infobulle()
 
@@ -975,6 +1030,7 @@ class LineEdit(Boite):
         self.fonction = kwargs.get("command", None)
         self.fonction_text_change = kwargs.get("command_text_change", None)
         self.multi = kwargs["multi"]
+        self.mouse_selected = False
 
     def connecte(self, fonction):
         self.fonction = fonction
@@ -996,9 +1052,12 @@ class LineEdit(Boite):
         if self.focus:
             self.stroke = "blue"
             self.texte.cursor_visible = True
+            pygame.key.set_repeat(500, 25)
         else:
             self.stroke = "black"
-            self.texte.deselect()
+            pygame.key.set_repeat()
+            if not self.mouse_selected:
+                self.texte.deselect()
 
     def scan_events(self, events):
         if self.is_disabled is False:
@@ -1022,9 +1081,9 @@ class LineEdit(Boite):
     def draw(self):
         if self.visible:
             super().draw()
-            # Boite.ecran.blit(self.texte.get_surface(), (self.Parent.left + self.left + 3, self.Parent.top + self.top))
+            # Boite.ecran.blit(self.texte.get_surface(), (self.absolute().left + 3, self.absolute().top))
             dec = (self.height - self.texte.surface.get_height()) / 2
-            Boite.ecran.blit(self.texte.surface, (self.parent.left + self.left + 3, self.parent.top + self.top + dec))
+            Boite.ecran.blit(self.texte.surface, (self.absolute().left + 3, self.absolute().top + dec))
             self.draw_infobulle()
 
     def __str__(self):
@@ -1036,10 +1095,13 @@ class LineEdit(Boite):
         return len(self.texte.value)
 
     def scan_mouse(self):
+
         if self.is_disabled is False:
             super().scan_mouse()
             x, y = processing.mouseXY()
             click = processing.mouse_click()
+            if not click:
+                self.mouse_selected = False
             if self.collidepoint(x, y):
                 self.mouseOn = True
             else:
@@ -1052,19 +1114,31 @@ class LineEdit(Boite):
                 self.focus = True
                 self.parent.objet_focus = True
                 # positionne le curseur au niveau de la souris
+                c = 0
                 if not self.multi:
                     c = 0
                     while self.texte.font_object.size(self.texte.value[0:c])[
                         0] < x - self.parent.x - self.x and c <= len(
                         self):
                         c += 1
-                    self.texte.manager.cursor_pos = c - 1
+                    self.texte.set_cursor_pos(c - 1)
                     # *************************
                     if isinstance(self.parent, TextEdit):
                         self.parent.ligne_actuelle = self.name
                 else:
                     self.texte.set_cursor_pos(
                         self.texte.posxy_to_cursor_pos(x - self.parent.x - self.x, y - self.parent.y - self.y))
+                if not self.mouse_selected:
+                    self.mouse_selected = True
+                    self.texte.manager.start_selection()
+                else:
+                    self.texte.manager.end_selection()
+            if self.mouseOn and self.multi:
+                if processing.mouse_wheel_state() == 1:
+                    self.texte.manager.move_up()
+                elif processing.mouse_wheel_state() == -1:
+                    self.texte.manager.move_down()
+
         else:
             self.focus = False
 
@@ -1083,7 +1157,7 @@ class LineEdit(Boite):
 
 
 class TextEdit(LineEdit):
-    """permet de créer un texte sur plusieurs ligne"""
+    """permet de créer un texte sur plusieurs lignes"""
 
     def __init__(self, parent, rect, texte: str, **kwargs):
         super().__init__(parent, rect, texte, multi=True)
@@ -1117,14 +1191,18 @@ class Bouton(Boite):
         super().__init__(parent, rect, **kwargs)
         self.fonction = kwargs.get("command", None)
         cmo = kwargs.get("command_mouse_over", None)
+        kwargs["expand"] = kwargs.get("expand", "xy")
         if not isinstance(cmo, tuple):
             cmo = (cmo, None)
         self.fonction_mouse_over, self.fonction_mouse_over_off = cmo
         self.mouseOn = False
         self.mouseClick = False
         self.texte = MultiLineText(self, (2, 2, self.width - 4, self.height - 4), texte, **kwargs)
-        self.height = max(self.height, self.texte.height + 4)
-        self.width = max(self.width, self.texte.width + 2 * self.border_rounded + 4)
+        if len(kwargs.get("expand")) > 0:
+            if kwargs.get("expand")[0] == "x":
+                self.height = max(self.height, self.texte.height + 4)
+            if kwargs.get("expand")[-1] == "y":
+                self.width = max(self.width, self.texte.width + 2 * self.border_rounded + 4)
         self.forced = False
         self.texte.left = self.left + 2
         self.texte.top = self.top + 2
@@ -1263,6 +1341,7 @@ class Bouton(Boite):
                         else:
                             self.fonction_mouse_over_off(self.name)
             if click is False and self.mouseClick is True:
+
                 self.mouseClick = False
                 if self.mouseOn is True and self.fonction is not None:
                     if self.name is None:
@@ -1326,13 +1405,53 @@ class Dialog(Boite):
 
         self._visible = True
         self.start_drop = None
+        self.start_resize_right = False
+        self.start_resize_bottom = False
         self.destroy = False
         self._focus = False
-        self.modale = False
+        self.modale = kwargs.get('modale', False)
         self.positionne()
         self.objet_focus = False
         self.pack_list = []
+        self.resizable = kwargs.get('resizable', 0)
         self.__default_name_object = "obj_"
+        if self.modale:
+            self.parent.disabled("all")
+
+    @property
+    def disabled(self) -> bool:
+        """
+        Renvoie si la boîte est désactivée
+
+        Returns:
+            bool: True si la boîte est désactivée, False sinon.
+        """
+        return self.is_disabled
+
+    @disabled.setter
+    def disabled(self, value: bool):
+        """
+        Modifie l'activation de la boîte.
+
+        Args:
+            value (bool): La nouvelle valeur de l'activation'.
+
+        Returns:
+            None
+        """
+        self.is_disabled = value
+        if self.frame:
+            self.objet_by_name("frame_cadre").disabled = value
+            self.objet_by_name("frame_title").disabled = value
+        elif self.cadre:
+            self.objet_by_name("title_box").disabled = value
+            self.objet_by_name("title").disabled = value
+            self.objet_by_name("close").disabled = value
+
+
+
+
+
 
     def init(self):
         self.objet = {}
@@ -1348,7 +1467,7 @@ class Dialog(Boite):
         self.pack_list = []
 
     def __str__(self):
-        return f"Dialog : {super()}"
+        return f"Dialog : {self.name} {super()}"
 
     def positionne(self):
         if self.pos == "center":
@@ -1369,6 +1488,8 @@ class Dialog(Boite):
         self._visible = False
         self.focus = False
         self.destroy = True
+        if self.modale:
+            self.parent.enabled("all")
 
     @property
     def default_name_object(self):
@@ -1546,15 +1667,6 @@ class Dialog(Boite):
                     x[i] = x[i] - o.width
         else:
             x = [(self.width - width_ligne[i]) // 2 for i in range(len(lignes))]
-            # for i in range(len(lignes)):
-            #     for o in lignes[i]:
-            #         x[i] = x[i] - o.width
-            # x =  x - self.objet[o].width
-        #     if kwargs.get("expand", None) is None:
-        #         x /= 2
-        #     else:
-        #         x -= padx
-        # posx0 = x
         for i in range(len(lignes)):
             for o in lignes[i]:
                 o.setX(x[i])
@@ -1765,10 +1877,6 @@ class Dialog(Boite):
 
     def draw(self):
         """dessine la boite de dialogue"""
-        # try:
-        #     self.title = self.focus
-        # except:
-        #     pass
         while len(self.destroyed) > 0:
             self.objet.pop(self.destroyed.pop())
         if self._visible:
@@ -1791,6 +1899,17 @@ class Dialog(Boite):
         """gère les évènements souris de la boite de dialogue ou de l'ihm """
         x, y = processing.mouseXY()
         click = processing.mouse_click()
+        if self.resizable & 1 and self.colliderigth(x, y):
+            affichage.cursor(SYSTEM_CURSOR_SIZEWE)
+        elif self.resizable & 2 and self.collidebottom(x, y):
+            affichage.cursor(SYSTEM_CURSOR_SIZENS)
+        elif self.objet.get("title_box") is not None and self.objet.get("title_box").collidepoint(x, y):
+            affichage.cursor(SYSTEM_CURSOR_SIZEALL)
+        else:
+            affichage.cursor(SYSTEM_CURSOR_ARROW)
+        if not click:
+            self.start_resize_right = False
+            self.start_resize_bottom = False
         is_ihm: bool = isinstance(self, IhmScreen)
         if is_ihm or (self.visible and self.focus):
             if not is_ihm:
@@ -1802,10 +1921,11 @@ class Dialog(Boite):
                     self.start_drop = None
             # t
             mouse_on_dialog = False
+
             for o in self.objet.values():
                 if o.visible:
                     # gestion de boite de dialogue enfant de ihm
-                    if isinstance(self, IhmScreen) and isinstance(o, Dialog):
+                    if (isinstance(self, IhmScreen) or isinstance(self, Dialog)) and isinstance(o, Dialog):
                         if o.collidepoint(x, y) and processing.mouse_click_down() or o.start_drop is not None:
                             # t
                             mouse_on_dialog = True
@@ -1819,14 +1939,12 @@ class Dialog(Boite):
                             o.scanKeyboard()
                         if (o.frame or not o.cadre) and not o.collidepoint(x, y):
                             o.focus = False
-                        if o.modale:
-                            modale = True
-                            break
-            if not self.modale and mouse_on_dialog is False:
-                # try:
+                        # if o.modale:
+                        #     modale = True
+                        #     break
+            # if not self.modale and mouse_on_dialog is False:
+            if mouse_on_dialog is False:
                 objets = list(self.objet.keys())
-                # test
-                # fin test
                 for k in objets:
                     o: Boite = self.objet.get(k)
                     if o is not None and o.visible:
@@ -1840,8 +1958,16 @@ class Dialog(Boite):
                             else:
                                 self.x = x + self.start_drop[0]
                                 self.y = y + self.start_drop[1]
-                        # elif isinstance(o, TextEdit):
-                        #     o.scan_events()
+                        elif self.resizable & 1 and (self.colliderigth(x, y) or self.start_resize_right) and click:
+                            # redimensionnement de la boite de dialogue par la droite
+                            if not self.start_resize_right:
+                                self.start_resize_right = True
+                            self.setWidth(x - self.absolute().x)
+                        elif self.resizable & 2 and (self.collidebottom(x, y) or self.start_resize_bottom) and click:
+                            # redimensionnement de la boite de dialogue par le bas
+                            if not self.start_resize_bottom:
+                                self.start_resize_bottom = True
+                            self.setHeight(y - self.absolute().y)
                         elif isinstance(o, ListBox):
                             o.scan_mouse()
                         elif isinstance(o, ListRadio):
@@ -1906,27 +2032,43 @@ class Dialog(Boite):
         la méthode addObjet"""
         return self.objet.get(str(name))
 
-    def disabled(self, name: Union[str, List[str]]) -> None:
+    def disable(self, name: Union[str, List[str]]) -> None:
         """
         Désactive les objets spécifiés en leur attribuant la valeur True pour l'attribut is_disabled.
 
         Args:
             name (str or list[str]): Le nom de l'objet ou une liste de noms d'objets à désactiver.
             Si la valeur 'all' est fournie, tous les objets seront désactivés.
+            Si le parent est une boite de dialogue, les objets de la boite de dialogue seront désactivés.
+            et le parent sera désactivé si self.disabled est True.
 
         Returns:
             None
         """
         if name == "all":
+            # désactivation de tous les objets y compris ceux spécifiques à la boite de dialogue
             for o in self.objet.values():
                 o.disabled = True
+            if not self.disabled:
+                # réactivation des objets spécifiques de la boite de dialogue
+                if self.frame:
+                    self.objet_by_name("frame_cadre").disabled = False
+                    self.objet_by_name("frame_title").disabled = False
+                elif self.cadre:
+                    self.objet_by_name("title_box").disabled = False
+                    self.objet_by_name("title").disabled = False
+                    self.objet_by_name("close").disabled = False
         elif isinstance(name, list):
+            # désactivation des objets contenus dans la liste
             for o in name:
                 self.objet[o].disabled = True
         else:
+            # désactivation de l'objet spécifié
             self.objet_by_name(name).disabled = True
 
-    def enabled(self, name: Union[str, List[str]]) -> None:
+
+
+    def enable(self, name: Union[str, List[str]]) -> None:
         """
         Active les objets spécifiés en leur attribuant la valeur False pour l'attribut is_disabled.
 
@@ -1999,6 +2141,21 @@ class Dialog(Boite):
         return None
 
 
+class Frame(Dialog):
+    def __init__(self, parent, rect, **kwargs):
+        kwargs['cadre'] = False
+        kwargs['frame'] = True
+        super().__init__(parent, rect, **kwargs)
+
+    def scan_mouse(self):
+        x, y = processing.mouseXY()
+        if self.collidepoint(x, y):
+            self.focus = True
+            super().scan_mouse()
+        else:
+            self.focus = False
+
+
 class Grid(Dialog):
 
     def __init__(self, parent, rect, datas=[], **kwargs):
@@ -2011,29 +2168,38 @@ class Grid(Dialog):
         self.padx = kwargs.get("padx", 0)
         self.pady = kwargs.get("pady", 0)
         self.padxy = kwargs.get("padxy", 0)
-        self.editable = kwargs.get("editable",False)
+        self.editable = kwargs.get("editable", False)
         if self.padxy > 0:
             self.padx = self.pady = self.padxy
         self.grid = datas
         self.rows_width, self.lines_height = self.calculate_collum_datas_size()
         self.start_row = 0
         self.start_col = 0
-        self.addObjet(ScrollBar(self, self.height // self.lines_height, len(self.grid) + 1, orientation="e"),
-                      "v_scrollbar")
-        self.addObjet(ScrollBar(self, self.width // (sum(self.rows_width) // len(self.grid[0])), len(self.grid[0]),
-                                orientation="s"), "h_scrollbar")
-        self.vs: ScrollBar = self.objet_by_name("v_scrollbar")
-        self.hs: ScrollBar = self.objet_by_name("h_scrollbar")
-        self.selected_cell: LineEdit = self.addObjet(LineEdit(self, (0, 0, 0, 0), "", command=self.enter_key), "cell_edit")
+        maxi = len(self.grid[0]) + round(self.width / sum(self.rows_width))
+        self.addObjet(Slider(self, 0, only_one=False, maxi=maxi, pas=processing.borner(maxi / 10, 1, maxi)),
+                      "h_scrollbar")
+        maxi = len(self.grid) - round(self.height / self.lines_height) + 1
+        pas = processing.borner(maxi // 10, 1, maxi)
+        self.addObjet(Slider(self, 1, only_one=False, maxi=maxi, pas=pas), "v_scrollbar")
+        self.vs: Slider = self.objet_by_name("v_scrollbar")
+        self.hs: Slider = self.objet_by_name("h_scrollbar")
+        self.shows_sliders()
+        self.selected_cell: LineEdit = self.addObjet(LineEdit(self, (0, 0, 0, 0), "", command=self.enter_key),
+                                                     "cell_edit")
         self.selected_cell.visible = False
         self.selected_pos = None
+        self.entete = kwargs.get("entete", True)
         if self.hs.visible and self.vs.visible:
-            self.vs.height = self.vs.height - self.hs.height
-            self.hs.width = self.hs.width - self.vs.width
+            self.hs.only_one = self.vs.only_one = False
         elif self.vs.visible:
-            self.vs.height = self.parent.height
+            self.vs.only_one = True
         elif self.hs.visible:
-            self.hs.width = self.parent.width
+            self.hs.only_one = True
+
+    def shows_sliders(self):
+        """Affiche les sliders si besoin"""
+        self.hs.visible = self.width < sum(self.rows_width)
+        self.vs.visible = self.height < self.lines_height * len(self.grid)
 
     def calculate_collum_datas_size(self):
         """calcule la largeur des colonnes de la grille en fonction de la largeur des données."""
@@ -2070,7 +2236,7 @@ class Grid(Dialog):
     def calc_nb_cols(self):
         """calcule le nombre de colonnes à afficher en fonction de la largeur de la grille et de la largeur de la fenêtre."""
         w = 0
-        width = self.width - self.vs.width
+        width = self.width - self.vs.slider_width
         i = self.start_col
         for i in range(self.start_col, len(self.grid[0])):
             if w + self.rows_width[i] > width:
@@ -2084,7 +2250,6 @@ class Grid(Dialog):
         self.selected_cell.text(self.grid[pos[0]][pos[1]])
         self.selected_cell.visible = True
 
-
     def enter_key(self):
         self.grid[self.selected_pos[0]][self.selected_pos[1]] = self.objet_by_name("cell_edit").text()
         self.selected_cell.visible = False
@@ -2092,17 +2257,35 @@ class Grid(Dialog):
 
     def draw(self):
         super().draw()
-        height = self.height - self.hs.height
-        width = self.width - self.vs.width
+        height = self.height - self.hs.slider_width
+        width = self.width - self.vs.slider_width
         nb_cols = self.calc_nb_cols()
         if self.vs.visible:
-            self.start_row = self.vs.value()
+            self.start_row = self.vs.value + self.entete
         if self.hs.visible:
-            self.start_col = min(self.hs.value(), len(self.grid[0]))
-        for i in range(self.start_row, min(len(self.grid), height // self.lines_height + self.start_row)):
+            self.start_col = self.hs.value
+        # affichage des entêtes
+        if self.entete:
             dec_x = 0
-            if self.lines_height * (i - self.start_row) > height:
-                lines_height = height - self.lines_height * (i - self.start_row) - 1
+            lines_height = self.lines_height
+            for j in range(self.start_col, min(len(self.grid[0]), nb_cols + self.start_col)):
+                if dec_x + self.rows_width[j] > width:
+                    rows_width = width - dec_x - 10
+                    text(self.grid[0][j], self.absolute().x + dec_x,
+                         self.absolute().y, rows_width,
+                         lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center")
+                    break
+                else:
+                    text(self.grid[0][j], self.absolute().x + dec_x,
+                         self.absolute().y,
+                         self.rows_width[j],
+                         lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center")
+                dec_x += self.rows_width[j]
+        # affichage des datas
+        for i in range(self.start_row, min(len(self.grid), height // self.lines_height + self.start_row - self.entete)):
+            dec_x = 0
+            if self.lines_height * (i - self.start_row + self.entete) > height:
+                lines_height = height - self.lines_height * (i - self.start_row + self.entete) - 1
                 if lines_height <= 0:
                     break
             else:
@@ -2110,24 +2293,39 @@ class Grid(Dialog):
             for j in range(self.start_col, min(len(self.grid[0]), nb_cols + self.start_col)):
                 if dec_x + self.rows_width[j] > width:
                     rows_width = width - dec_x - 10
-                    text(self.grid[i][j], self.x + dec_x, self.y + (i - self.start_row) * lines_height, rows_width,
-                             lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center")
+                    text(self.grid[i][j], self.absolute().x + dec_x,
+                         self.absolute().y + (i - self.start_row + self.entete) * lines_height, rows_width,
+                         lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center")
                     break
                 else:
                     if self.editable:
                         if (i, j) != self.selected_pos:
-                            text(self.grid[i][j], self.x + dec_x, self.y + (i - self.start_row) * lines_height,
-                             self.rows_width[j],
-                             lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center",fill_mouse_on="lightblue",name=(i,j),command=self.click_cell)
+                            text(self.grid[i][j], self.absolute().x + dec_x,
+                                 self.absolute().y + (i - self.start_row + self.entete) * lines_height,
+                                 self.rows_width[j],
+                                 lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center",
+                                 fill_mouse_on="lightblue", name=(i, j), command=self.click_cell)
                         else:
-                            self.selected_cell.setRect((dec_x, (i - self.start_row) * lines_height, self.rows_width[j], lines_height))
+                            self.selected_cell.setRect(
+                                (dec_x, (i - self.start_row + self.entete) * lines_height, self.rows_width[j],
+                                 lines_height))
                     else:
-                        text(self.grid[i][j], self.x + dec_x, self.y + (i - self.start_row) * lines_height,
+                        text(self.grid[i][j], self.absolute().x + dec_x,
+                             self.absolute().y + (i - self.start_row + self.entete) * lines_height,
                              self.rows_width[j],
                              lines_height, padx=self.padx, pady=self.pady, extend=False, align_v="center")
                 dec_x += self.rows_width[j]
             if (i - self.start_row) * self.lines_height > height:
                 break
+
+    def scan_mouse(self):
+        x, y = processing.mouseXY()
+        if self.collidepoint(x, y):
+            self.focus = True
+            super().scan_mouse()
+        else:
+            self.focus = False
+
 
 class IhmScreen(Dialog):
     """Création d'une interface homme machine sur la fenêtre likeprocessing """
@@ -2340,6 +2538,7 @@ class ListBox(Dialog):
         self.max_selected = kwargs.pop("max_selected")
         h = 21
         kwargs["name"] = 0
+        kwargs["expand"] = ""
         b = Bouton(self, (1, 1, self.width - 2, h), self.liste_item[0][0], **kwargs)
         h = b.height
         self.nb_affiche = len(self.liste_item)
@@ -2515,6 +2714,7 @@ class ComboBox(Dialog):
         self.liste_item = [[i, False] for i in list_item]
         self.hauteur_ligne = 21
         kwargs["name"] = 0
+        kwargs["maxi_visible_item"] = kwargs.get("maxi_visible_item", 5)
         line_edit = Label(self, (0, 0, self.width - 18, 22), self.liste_item[0][0], stroke="black", align_v="center")
         bouton = Bouton(self, (self.width - 18, 0, 18, 22), "V", command=self.open_close)
         self.addObjet(line_edit, "label")
@@ -2522,13 +2722,14 @@ class ComboBox(Dialog):
         self.decy = 21
         b = Bouton(self, (1, 22, self.width - 2, self.hauteur_ligne), self.liste_item[0][0], **kwargs)
         self.hauteur_ligne = b.height
-        self.nb_affiche = len(self.liste_item)
+        self.nb_affiche = min(len(self.liste_item), kwargs["maxi_visible_item"])
         self.addObjet(b, 0)
         self.scroll_bar = None
         self.debut = 0
         self.close = True
         self._value = 0
-        self.modale = True
+        self.modale = False
+        kwargs["expand"] = ""
         for i in range(1, len(list_item)):
             kwargs["name"] = i
             self.addObjet(Bouton(self, (1, (1 + i) * self.hauteur_ligne, self.width - 2, self.hauteur_ligne),
@@ -2536,8 +2737,8 @@ class ComboBox(Dialog):
         if kwargs["extend"]:
             self.height = len(self.liste_item) * self.hauteur_ligne + 2
         else:
-            if self.height < len(self.liste_item) * self.hauteur_ligne + 2:
-                self.nb_affiche = (self.height - self.decy) // self.hauteur_ligne
+            if self.height < self.nb_affiche * self.hauteur_ligne + 2:
+                self.nb_affiche = max((self.height - self.decy) // self.hauteur_ligne, self.nb_affiche)
                 self.height = self.nb_affiche * self.hauteur_ligne + self.decy + 2
                 self.scroll_bar = ScrollBar(self, self.nb_affiche, len(self.liste_item))
                 for k in self.objet.keys():
@@ -2545,6 +2746,8 @@ class ComboBox(Dialog):
                         o = self.objet_by_name(k)
                         o.setWidth(o.width - self.scroll_bar.width)
                 self.addObjet(self.scroll_bar, "scoll_bar")
+            else:
+                self.height = self.nb_affiche * self.hauteur_ligne + self.decy + 2
 
     @property
     def bottom(self):
@@ -2567,6 +2770,7 @@ class ComboBox(Dialog):
 
     def open_close(self):
         self.close = not self.close
+        print(self.close)
         if not self.close:
             self.focus = True
 
@@ -2660,6 +2864,7 @@ class ScrollBar:
         self.mouse_click_down = False
         self.affiche = affiche
         self.maxi = maxi
+        self.name = kwargs.get("name", None)
         if self.maxi == 0:
             self.visible = False
             self._pas = 1
@@ -2761,9 +2966,10 @@ class ScrollBar:
                         if processing.mouse_wheel_state() == 1:
                             self.curseur.x = max(0, self.curseur.x - self.curseur.width // 8)
                         elif processing.mouse_wheel_state() == -1:
-                            self.curseur.x = min(self.width - self.curseur.width, self.curseur.x + self.curseur.width // 8)
+                            self.curseur.x = min(self.width - self.curseur.width,
+                                                 self.curseur.x + self.curseur.width // 8)
 
-            elif self.parent.left<=x<=self.parent.right-20 and self.parent.top<=y<=self.parent.bottom-20:
+            elif self.parent.left <= x <= self.parent.right - 20 and self.parent.top <= y <= self.parent.bottom - 20:
                 # déplacement avec la roulette
                 if self.orientation == "e":
                     if processing.mouse_wheel_state() == 1:
