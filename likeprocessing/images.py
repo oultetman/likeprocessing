@@ -82,7 +82,7 @@ def get_pixel_color(picture: Image, pos: tuple) -> tuple:
     return picture.get_at(pos)
 
 
-ef resize_image(picture: Image, size: tuple[int, int]) -> Image:
+def resize_image(picture: Image, size: tuple[int, int]) -> Image:
     """ redimensionne une image en fonction de size"""
     return pygame.transform.smoothscale(picture, size)
 
