@@ -294,6 +294,12 @@ class Boite(pygame.Rect):
     def collidepoint(self, x, y):
         return super().collidepoint(x - self.parent.absolute().left, y - self.parent.absolute().top)
 
+    def collidebottom(self,x,y):
+        return self.absolute().x<=x<=self.absolute().right and self.absolute().bottom-5<=y<=self.absolute().bottom
+
+    def collideright(self,x,y):
+        return self.absolute().right-5 <= x <= self.absolute().right and self.absolute().y <= y <= self.absolute().bottom
+
     def scan_mouse(self):
         """gestion des bulles d'info"""
         x, y = processing.mouseXY()
@@ -1416,7 +1422,7 @@ class Dialog(Boite):
         self.resizable = kwargs.get('resizable', 0)
         self.__default_name_object = "obj_"
         if self.modale:
-            self.parent.disabled("all")
+            self.parent.disable("all")
 
     @property
     def disabled(self) -> bool:
@@ -1489,7 +1495,7 @@ class Dialog(Boite):
         self.focus = False
         self.destroy = True
         if self.modale:
-            self.parent.enabled("all")
+            self.parent.enable("all")
 
     @property
     def default_name_object(self):
@@ -1899,7 +1905,7 @@ class Dialog(Boite):
         """gère les évènements souris de la boite de dialogue ou de l'ihm """
         x, y = processing.mouseXY()
         click = processing.mouse_click()
-        if self.resizable & 1 and self.colliderigth(x, y):
+        if self.resizable & 1 and self.collideright(x, y):
             affichage.cursor(SYSTEM_CURSOR_SIZEWE)
         elif self.resizable & 2 and self.collidebottom(x, y):
             affichage.cursor(SYSTEM_CURSOR_SIZENS)
@@ -1958,7 +1964,7 @@ class Dialog(Boite):
                             else:
                                 self.x = x + self.start_drop[0]
                                 self.y = y + self.start_drop[1]
-                        elif self.resizable & 1 and (self.colliderigth(x, y) or self.start_resize_right) and click:
+                        elif self.resizable & 1 and (self.collideright(x, y) or self.start_resize_right) and click:
                             # redimensionnement de la boite de dialogue par la droite
                             if not self.start_resize_right:
                                 self.start_resize_right = True
@@ -2173,12 +2179,12 @@ class Grid(Dialog):
             self.padx = self.pady = self.padxy
         self.grid = datas
         self.rows_width, self.lines_height = self.calculate_collum_datas_size()
-        self.start_row = 0
+        self.start_row = 1
         self.start_col = 0
-        maxi = len(self.grid[0]) + round(self.width / sum(self.rows_width))
+        maxi = abs(len(self.grid[0]) + round(self.width / sum(self.rows_width)))
         self.addObjet(Slider(self, 0, only_one=False, maxi=maxi, pas=processing.borner(maxi / 10, 1, maxi)),
                       "h_scrollbar")
-        maxi = len(self.grid) - round(self.height / self.lines_height) + 1
+        maxi = abs(len(self.grid) - round(self.height / self.lines_height) + 1)
         pas = processing.borner(maxi // 10, 1, maxi)
         self.addObjet(Slider(self, 1, only_one=False, maxi=maxi, pas=pas), "v_scrollbar")
         self.vs: Slider = self.objet_by_name("v_scrollbar")

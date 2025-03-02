@@ -44,10 +44,14 @@ def loadImages(liste_images: list[str], sens=0) -> Image:
         return img
 
 
-def image(picture, x, y):
+def image(picture, x, y,**kwargs):
     """Affiche une Image en plaçant le pixel en haut à gauche au point de coordonnées (x, y)
     dans la zone de dessin."""
     r = processing.get_rotation_rad() * 180 / math.pi
+    flip_h = kwargs.get("flip_h", False)
+    flip_v = kwargs.get("flip_v", False)
+    if flip_h or flip_v:
+        picture = pygame.transform.flip(picture, flip_h, flip_v)
     img = pygame.transform.rotate(picture, r)
     x += picture.get_width() / 2
     y += picture.get_height() / 2
@@ -78,7 +82,7 @@ def get_pixel_color(picture: Image, pos: tuple) -> tuple:
     return picture.get_at(pos)
 
 
-def resize_image(picture: Image, size: tuple[int, int]) -> Image:
+ef resize_image(picture: Image, size: tuple[int, int]) -> Image:
     """ redimensionne une image en fonction de size"""
     return pygame.transform.smoothscale(picture, size)
 
